@@ -1,0 +1,2 @@
+add_executable(TestLmpcConstant TestLmpcConstant.c)
+target_link_libraries(TestLmpcConstant PRIVATE LmpcConstant)
