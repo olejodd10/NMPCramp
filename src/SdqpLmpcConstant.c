@@ -32,12 +32,12 @@ static const real_t *m_A;
 static const real_t *m_B;
 static const real_t *m_C;
 
-static real_t m_y_min;
-static real_t m_y_max;
+static const real_t *m_y_min;
+static const real_t *m_y_max;
 static const real_t *m_Lt;
 static const real_t *m_lt;
-static real_t m_u_min;
-static real_t m_u_max;
+static const real_t *m_u_min;
+static const real_t *m_u_max;
 
 static indexed_vectors_t m_invq;
 static iterable_set_t m_a_set;
@@ -87,8 +87,6 @@ static void _get_column_M4(
         const real_t B[n_x][n_u],
         const real_t C[n_y][n_x],
 
-        real_t m_y_min,
-        real_t m_y_max,
         const real_t Lt[n_t][n_x],
 
         real_t *column_M4) 
@@ -196,7 +194,7 @@ static void get_column_M4(size_t index, real_t *column_M4) {
         m_n_M, m_n_H, m_n_a,
         CAST_CONST_VLA(m_Q), CAST_CONST_VLA(m_S), CAST_CONST_VLA(m_R),
         CAST_CONST_VLA(m_A), CAST_CONST_VLA(m_B), CAST_CONST_VLA(m_C),
-        m_y_min, m_y_max, CAST_CONST_VLA(m_Lt),
+        CAST_CONST_VLA(m_Lt),
         column_M4);
 }
 
@@ -271,12 +269,12 @@ static void initialize_y(
 }
 
 static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H, 
-        const real_t A[n_x][n_x], const real_t B[n_x][n_u], const real_t x0[n_x], real_t u_max, const iterable_set_t *a_set, const real_t y[n_H],
+        const real_t A[n_x][n_x], const real_t B[n_x][n_u], const real_t x0[n_x], const real_t u_max[n_u], const iterable_set_t *a_set, const real_t y[n_H],
         real_t x[N*n_x], real_t u[N*n_u])
 {
     // Find ha-ra, store in last n_a elements of z (u)
     for (size_t i = 0; i < N*n_u; ++i) { // n_a == N*n_u
-        u[i] = iterable_set_contains(a_set, i) ? u_max - y[i] : u_max; // y_a is in the start of y
+        u[i] = iterable_set_contains(a_set, i) ? u_max[i % n_u] - y[i] : u_max[i % n_u]; // y_a is in the start of y
     }
 
     // Multiply ha-ra with Bhat, and write result to first n_M elements of z (x)
@@ -313,18 +311,18 @@ static void compute_m5(
         const real_t B[n_x][n_u],
         const real_t C[n_y][n_x],
 
-        real_t y_min,
-        real_t y_max,
+        const real_t y_min[n_y],
+        const real_t y_max[n_y],
         const real_t lt[n_t],
-        real_t u_min,
-        real_t u_max)
+        const real_t u_min[n_u],
+        const real_t u_max[n_u])
 {
     // MH[0 ha] (result n_z, but last n_a are just ha) (actually multiplication with MH2 (not transposed))
     for (size_t i = 0; i < N; ++i) {
         for (size_t j = 0; j < n_u; ++j) {
-            m_temp3[n_M + i*n_u + j] = u_max; // Initialize ha first
+            m_temp3[n_M + i*n_u + j] = u_max[j]; // Initialize ha first
         }
-        linalg_matrix_vector_product(n_x, n_u, B, &m_temp3[n_M + i*n_u], &m_temp3[i*n_x]); // This can be simplified since m_temp3[n_H+i*n_u] is just u_max
+        linalg_matrix_vector_product(n_x, n_u, B, &m_temp3[n_M + i*n_u], &m_temp3[i*n_x]);
     }
     multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_VLA(m_temp3));
 
@@ -338,14 +336,14 @@ static void compute_m5(
     }
     // Subtract hb from last n_b of m5
     for (size_t i = 0; i < n_y*(N-1); ++i) {
-        m_m5[n_a + i] -= y_min;
+        m_m5[n_a + i] -= y_min[i % n_y];
     }
     for (size_t i = 0; i < n_y*(N-1); ++i) {
-        m_m5[n_a + n_y*(N-1) + i] += y_max;
+        m_m5[n_a + n_y*(N-1) + i] += y_max[i % n_y];
     }
     memcpy(&m_m5[n_a + 2*n_y*(N-1)], lt, sizeof(real_t)*n_t);
     for (size_t i = 0; i < n_u*N; ++i) {
-        m_m5[n_a + 2*n_y*(N-1) + n_t + i] -= u_min;
+        m_m5[n_a + 2*n_y*(N-1) + n_t + i] -= u_min[i % n_u];
     }
 
     // Multiply MH[0 ha] with P (result n_z, but n_a of it can go directly to m5 because of I in MH2T)
@@ -390,12 +388,12 @@ void sdqp_lmpc_constant_init(
         const real_t B[n_x][n_u],
         const real_t C[n_y][n_x],
 
-        real_t y_min,
-        real_t y_max,
+        const real_t y_min[n_y],
+        const real_t y_max[n_y],
         const real_t Lt[n_t][n_x],
         const real_t lt[n_t],
-        real_t u_min,
-        real_t u_max
+        const real_t u_min[n_u],
+        const real_t u_max[n_u]
 ) {
 	m_n_x = n_x;
 	m_n_u = n_u;
@@ -418,12 +416,12 @@ void sdqp_lmpc_constant_init(
     m_B = (real_t*)B;
     m_C = (real_t*)C;
 
-    m_y_min = y_min;
-    m_y_max = y_max;
+    m_y_min = (real_t*)y_min;
+    m_y_max = (real_t*)y_max;
     m_Lt = (real_t*)Lt;
     m_lt = (real_t*)lt;
-    m_u_min = u_min;
-    m_u_max = u_max;
+    m_u_min = (real_t*)u_min;
+    m_u_max = (real_t*)u_max;
 
     indexed_vectors_init(&m_invq, m_n_z, m_n_H, m_n_H);
     iterable_set_init(&m_a_set, m_n_H);

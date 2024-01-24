@@ -35,12 +35,12 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
 	real_t *B = (real_t*)malloc(sizeof(real_t)*n_x*n_u);
 	real_t *C = (real_t*)malloc(sizeof(real_t)*n_y*n_x);
 
-    real_t y_min;
-    real_t y_max;
+    real_t *y_min = (real_t*)malloc(sizeof(real_t)*n_y);
+    real_t *y_max = (real_t*)malloc(sizeof(real_t)*n_y);
 	real_t *Lt = (real_t*)malloc(sizeof(real_t)*n_t*n_x);
 	real_t *lt = (real_t*)malloc(sizeof(real_t)*n_t);
-    real_t u_min;
-    real_t u_max;
+    real_t *u_min = (real_t*)malloc(sizeof(real_t)*n_u);
+    real_t *u_max = (real_t*)malloc(sizeof(real_t)*n_u);
 
     real_t *x = (real_t*)malloc(sizeof(real_t)*N*n_x);
     real_t *u = (real_t*)malloc(sizeof(real_t)*N*n_u);
@@ -92,13 +92,13 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
     }
 
     sprintf(path, "%s/y_min.csv", input_dir);
-    if (csv_parse_vector(path, 1, &y_min)) {
-        printf("Error while parsing input y_min.\n");
+    if (csv_parse_vector(path, n_y, y_min)) {
+        printf("Error while parsing input vector y_min.\n");
         return 1;
     }
     sprintf(path, "%s/y_max.csv", input_dir);
-    if (csv_parse_vector(path, 1, &y_max)) {
-        printf("Error while parsing input y_max.\n");
+    if (csv_parse_vector(path, n_y, y_max)) {
+        printf("Error while parsing input vector y_max.\n");
         return 1;
     }
     sprintf(path, "%s/Lt.csv", input_dir);
@@ -112,13 +112,13 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
         return 1;
     }
     sprintf(path, "%s/u_min.csv", input_dir);
-    if (csv_parse_vector(path, 1, &u_min)) {
-        printf("Error while parsing input u_min.\n");
+    if (csv_parse_vector(path, n_u, u_min)) {
+        printf("Error while parsing input vector u_min.\n");
         return 1;
     }
     sprintf(path, "%s/u_max.csv", input_dir);
-    if (csv_parse_vector(path, 1, &u_max)) {
-        printf("Error while parsing input u_max.\n");
+    if (csv_parse_vector(path, n_u, u_max)) {
+        printf("Error while parsing input vector u_max.\n");
         return 1;
     }
 
@@ -170,8 +170,12 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
 	free(B);
 	free(C);
 
+    free(y_min);
+    free(y_max);
 	free(Lt);
 	free(lt);
+    free(u_min);
+    free(u_max);
 
 	free(x);
 	free(u);

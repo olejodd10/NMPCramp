@@ -21,12 +21,12 @@ void sdqp_lmpc_constant_init(
         const real_t B[n_x][n_u],
         const real_t C[n_y][n_x],
 
-        real_t y_min,
-        real_t y_max,
+        const real_t y_min[n_y],
+        const real_t y_max[n_y],
         const real_t Lt[n_t][n_x],
         const real_t lt[n_t],
-        real_t u_min,
-        real_t u_max); 
+        const real_t u_min[n_u],
+        const real_t u_max[n_u]); 
 
 void sdqp_lmpc_constant_cleanup(void);
 
