@@ -6,8 +6,6 @@
 
 #include "Types.h"
 
-#define SAVE_FORMAT "%.4le"
-
 static size_t parse_matrix_height(FILE* f) {
     size_t count = 0;
     fpos_t pos;
@@ -47,7 +45,7 @@ static int assert_size(FILE* f, size_t m, size_t n) {
 // Accepts both row and column vectors
 static int parse_row(FILE* f, size_t n, real_t res[n]) {
     for (size_t i = 0; i < n; ++i) {
-        int ret = fscanf(f, "%f,", &res[i]);
+        int ret = fscanf(f, REAL_T_PARSE_FORMAT ",", &res[i]);
         if (ret != 1) {
             return -1;
         }
@@ -113,14 +111,14 @@ static ssize_t write_row(FILE* f, size_t n, const real_t vec[n]) {
     size_t sum = 0;
     int ret = 0;
     for (size_t i = 0; i < n-1; ++i) {
-        ret = fprintf(f, SAVE_FORMAT ",", vec[i]);
+        ret = fprintf(f, REAL_T_SAVE_FORMAT ",", vec[i]);
         if (ret < 0) {
             return ret;
         } else {
             sum += ret;
         }
     }
-    ret = fprintf(f, SAVE_FORMAT "\n", vec[n-1]);
+    ret = fprintf(f, REAL_T_SAVE_FORMAT "\n", vec[n-1]);
     if (ret < 0) {
         return ret;
     } else {
@@ -138,7 +136,7 @@ ssize_t csv_save_vector(const char* path, size_t n, const real_t vec[n]) {
     size_t sum = 0;
     int ret;
     for (size_t i = 0; i < n; ++i) {
-        ret = fprintf(f, SAVE_FORMAT "\n", vec[i]);
+        ret = fprintf(f, REAL_T_SAVE_FORMAT "\n", vec[i]);
         if (ret < 0) {
             return ret;
         } else {
