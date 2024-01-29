@@ -58,7 +58,7 @@ static void multiply_inv_eye_sub_Ahat_inplace(size_t n_x, size_t N, const real_t
 }
 
 static void multiply_inv_eye_sub_Ahat_T_inplace(size_t n_x, size_t N, const real_t A[n_x][n_x], real_t v[N][n_x]) {
-    for (size_t i = N-2; i >= 1; ++i) { 
+    for (int i = N-2; i >= 0; --i) { 
         for (size_t j = 0; j < n_x; ++j) {
             linalg_vector_add_scaled(n_x, v[i], A[j], v[i+1][j], v[i]);
         }
@@ -313,6 +313,7 @@ static void compute_m5(
 
         const real_t y_min[n_y],
         const real_t y_max[n_y],
+        const real_t Lt[n_t][n_x],
         const real_t lt[n_t],
         const real_t u_min[n_u],
         const real_t u_max[n_u])
@@ -334,16 +335,24 @@ static void compute_m5(
             m_m5[n_a + (i+N-1)*n_y + j] = temp;
         }
     }
+    linalg_matrix_vector_product(n_t, n_x, Lt, &m_temp3[(N-1)*n_x], &m_m5[n_a + 2*(N-1)*n_y]);
+    for (size_t i = 0; i < n_a; ++i) {
+        m_m5[n_a + 2*(N-1)*n_y + n_t + i] = -u_max[i % n_u];
+    }
+
     // Subtract hb from last n_b of m5
+    // Note the signs
     for (size_t i = 0; i < n_y*(N-1); ++i) {
-        m_m5[n_a + i] -= y_min[i % n_y];
+        m_m5[n_a + i] += y_min[i % n_y];
     }
     for (size_t i = 0; i < n_y*(N-1); ++i) {
-        m_m5[n_a + n_y*(N-1) + i] += y_max[i % n_y];
+        m_m5[n_a + n_y*(N-1) + i] -= y_max[i % n_y];
     }
-    memcpy(&m_m5[n_a + 2*n_y*(N-1)], lt, sizeof(real_t)*n_t);
+    for (size_t i = 0; i < n_t; ++i) {
+        m_m5[n_a + 2*n_y*(N-1) + i] -= lt[i];
+    }
     for (size_t i = 0; i < n_u*N; ++i) {
-        m_m5[n_a + 2*n_y*(N-1) + n_t + i] -= u_min[i % n_u];
+        m_m5[n_a + 2*n_y*(N-1) + n_t + i] += u_min[i % n_u];
     }
 
     // Multiply MH[0 ha] with P (result n_z, but n_a of it can go directly to m5 because of I in MH2T)
@@ -433,13 +442,14 @@ void sdqp_lmpc_constant_init(
     m_temp3 = (real_t*)malloc(sizeof(real_t)*m_n_z);
 
     ramp_init(m_n_H, get_column_M4);
+    ramp_enable_infeasibility_error(1e-12, 1e12);
 
     // Compute m5
     compute_m5( n_x, n_u, n_y, n_t, N,
         m_n_M, m_n_a,
         Q, S, R, fx, fu,
         A, B, C,
-        y_min, y_max, lt, u_min, u_max);
+        y_min, y_max, Lt, lt, u_min, u_max);
 }
 
 void sdqp_lmpc_constant_cleanup(void) {
@@ -458,6 +468,8 @@ void sdqp_lmpc_constant_cleanup(void) {
 
 int sdqp_lmpc_constant_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n_x], real_t x[n_x*N], real_t u[n_u*N]) {
     // initialize y
+    iterable_set_clear(&m_a_set);
+    indexed_vectors_clear(&m_invq);
     initialize_y(n_x, n_u, m_n_y, m_n_t, N, m_n_H, 
 		CAST_CONST_VLA(m_Q), CAST_CONST_VLA(m_S), CAST_CONST_VLA(m_R),
 		CAST_CONST_VLA(m_A), CAST_CONST_VLA(m_B), CAST_CONST_VLA(m_C),
