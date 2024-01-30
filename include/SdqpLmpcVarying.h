@@ -17,8 +17,6 @@ void sdqp_lmpc_varying_init(
         const real_t fx[n_x],
         const real_t fu[n_u],
 
-        const real_t A[N][n_x][n_x],
-        const real_t B[N][n_x][n_u],
         const real_t C[n_y][n_x],
 
         const real_t y_min[n_y],
@@ -32,5 +30,5 @@ void sdqp_lmpc_varying_init(
 void sdqp_lmpc_varying_cleanup(void);
 
 int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, 
-        const real_t x0[n_x], 
+        const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t x0[n_x], 
         real_t x[n_x*N], real_t u[n_u*N]);

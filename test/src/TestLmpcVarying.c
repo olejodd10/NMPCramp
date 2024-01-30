@@ -131,12 +131,14 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
     // Initialize solver
     sdqp_lmpc_varying_init(n_x, n_u, n_y, n_t, N, 
             CAST_CONST_VLA(Q), CAST_CONST_VLA(S), CAST_CONST_VLA(R), fx, fu, 
-            CAST_CONST_VLA(A), CAST_CONST_VLA(B), CAST_CONST_VLA(C), 
+            CAST_CONST_VLA(C), 
             y_min, y_max, CAST_CONST_VLA(Lt), lt, u_min, u_max);
 
     // Simulate
     for (size_t i = 0; i < simulation_timesteps; ++i) {
-        int err = sdqp_lmpc_varying_solve(n_x, n_u, N, &xout[i*n_x], x, u);
+        int err = sdqp_lmpc_varying_solve(n_x, n_u, N, 
+                CAST_CONST_VLA(A), CAST_CONST_VLA(B), &xout[i*n_x], 
+                x, u);
         if (err) {
             printf("Error while solving: %d\n", err);
             return 1;

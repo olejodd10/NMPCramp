@@ -337,8 +337,6 @@ void sdqp_lmpc_varying_init(
         const real_t fx[n_x],
         const real_t fu[n_u],
 
-        const real_t A[N][n_x][n_x],
-        const real_t B[N][n_x][n_u],
         const real_t C[n_y][n_x],
 
         const real_t y_min[n_y],
@@ -365,8 +363,6 @@ void sdqp_lmpc_varying_init(
     m_fx = (real_t*)fx; // Actually unused after m5 is initialized
     m_fu = (real_t*)fu; // Actually unused after m5 is initialized
 
-    m_A = (real_t*)A;
-    m_B = (real_t*)B;
     m_C = (real_t*)C;
 
     m_y_min = (real_t*)y_min;
@@ -401,13 +397,15 @@ void sdqp_lmpc_varying_cleanup(void) {
     ramp_cleanup();
 }
 
-int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n_x], real_t x[n_x*N], real_t u[n_u*N]) {
+int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t x0[n_x], real_t x[n_x*N], real_t u[n_u*N]) {
     // initialize y
+    m_A = (real_t*)A;
+    m_B = (real_t*)B;
     iterable_set_clear(&m_a_set);
     indexed_vectors_clear(&m_invq);
     initialize_y(n_x, n_u, m_n_y, m_n_t, N, m_n_H, m_n_H, m_n_a,
 		CAST_CONST_VLA(m_Q), CAST_CONST_VLA(m_S), CAST_CONST_VLA(m_R), m_fx, m_fu,
-		CAST_CONST_VLA(m_A), CAST_CONST_VLA(m_B), CAST_CONST_VLA(m_C),
+		A, B, CAST_CONST_VLA(m_C),
 		m_y_min, m_y_max, CAST_CONST_VLA(m_Lt), m_lt, m_u_min, m_u_max, 
         x0, m_y);
     int err = ramp_solve(m_n_H, m_n_z, &m_a_set, &m_invq, m_y);
@@ -415,7 +413,7 @@ int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n_
         return err;
     }
     compute_x_u(n_x, n_u, N, m_n_H, 
-            CAST_CONST_VLA(m_A), CAST_CONST_VLA(m_B), 
+            A, B, 
             x0, m_u_max, &m_a_set, m_y, 
             x, u);
     return 0;
