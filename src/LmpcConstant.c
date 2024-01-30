@@ -50,17 +50,17 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
 
     // Parse system matrices and vectors
     sprintf(path, "%s/Q.csv", input_dir);
-    if (csv_parse_matrix(path, n_x, n_x, CAST_VLA(Q))) { 
+    if (csv_parse_matrix(path, n_x, n_x, CAST_2D_VLA(Q, n_x))) { 
         printf("Error while parsing input matrix Q.\n");
         return 1;
     }
     sprintf(path, "%s/S.csv", input_dir);
-    if (csv_parse_matrix(path, n_x, n_x, CAST_VLA(S))) { 
+    if (csv_parse_matrix(path, n_x, n_x, CAST_2D_VLA(S, n_x))) { 
         printf("Error while parsing input matrix S.\n");
         return 1;
     }
     sprintf(path, "%s/R.csv", input_dir);
-    if (csv_parse_matrix(path, n_u, n_u, CAST_VLA(R))) { 
+    if (csv_parse_matrix(path, n_u, n_u, CAST_2D_VLA(R, n_u))) { 
         printf("Error while parsing input matrix R.\n");
         return 1;
     }
@@ -76,17 +76,17 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
     }
 
     sprintf(path, "%s/A.csv", input_dir);
-    if (csv_parse_matrix(path, n_x, n_x, CAST_VLA(A))) { 
+    if (csv_parse_matrix(path, n_x, n_x, CAST_2D_VLA(A, n_x))) { 
         printf("Error while parsing input matrix A.\n");
         return 1;
     }
     sprintf(path, "%s/B.csv", input_dir);
-    if (csv_parse_matrix(path, n_x, n_u, CAST_VLA(B))) { 
+    if (csv_parse_matrix(path, n_x, n_u, CAST_2D_VLA(B, n_u))) { 
         printf("Error while parsing input matrix B.\n");
         return 1;
     }
     sprintf(path, "%s/C.csv", input_dir);
-    if (csv_parse_matrix(path, n_y, n_x, CAST_VLA(C))) { 
+    if (csv_parse_matrix(path, n_y, n_x, CAST_2D_VLA(C, n_x))) { 
         printf("Error while parsing input matrix C.\n");
         return 1;
     }
@@ -102,7 +102,7 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
         return 1;
     }
     sprintf(path, "%s/Lt.csv", input_dir);
-    if (csv_parse_matrix(path, n_t, n_x, CAST_VLA(Lt))) { 
+    if (csv_parse_matrix(path, n_t, n_x, CAST_2D_VLA(Lt, n_x))) { 
         printf("Error while parsing input matrix Lt.\n");
         return 1;
     }
@@ -130,9 +130,9 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
 
     // Initialize solver
     sdqp_lmpc_constant_init(n_x, n_u, n_y, n_t, N, 
-            CAST_CONST_VLA(Q), CAST_CONST_VLA(S), CAST_CONST_VLA(R), fx, fu, 
-            CAST_CONST_VLA(A), CAST_CONST_VLA(B), CAST_CONST_VLA(C), 
-            y_min, y_max, CAST_CONST_VLA(Lt), lt, u_min, u_max);
+            CAST_CONST_2D_VLA(Q, n_x), CAST_CONST_2D_VLA(S, n_x), CAST_CONST_2D_VLA(R, n_u), fx, fu, 
+            CAST_CONST_2D_VLA(A, n_x), CAST_CONST_2D_VLA(B, n_u), CAST_CONST_2D_VLA(C, n_x), 
+            y_min, y_max, CAST_CONST_2D_VLA(Lt, n_x), lt, u_min, u_max);
 
     // Simulate
     for (size_t i = 0; i < simulation_timesteps; ++i) {
@@ -141,18 +141,18 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
             printf("Error while solving: %d\n", err);
             return 1;
         }
-        simulate_lti(n_x, n_u, CAST_CONST_VLA(A), &xout[i*n_x], CAST_CONST_VLA(B), u, &xout[(i+1)*n_x]);
+        simulate_lti(n_x, n_u, CAST_CONST_2D_VLA(A, n_x), &xout[i*n_x], CAST_CONST_2D_VLA(B, n_u), u, &xout[(i+1)*n_x]);
         memcpy(&uout[i*n_u], u, sizeof(real_t)*n_u);
     }
 
     // Save output
     sprintf(path, "%s/xout.csv", output_dir);
-    if (csv_save_matrix(path, simulation_timesteps+1, n_x, CAST_CONST_VLA(xout)) < 0) {
+    if (csv_save_matrix(path, simulation_timesteps+1, n_x, CAST_CONST_2D_VLA(xout, n_x)) < 0) {
         printf("Error while saving xout.\n");
         return 1;
     }
     sprintf(path, "%s/uout.csv", output_dir);
-    if (csv_save_matrix(path, simulation_timesteps, n_u, CAST_CONST_VLA(uout)) < 0) {
+    if (csv_save_matrix(path, simulation_timesteps, n_u, CAST_CONST_2D_VLA(uout, n_u)) < 0) {
         printf("Error while saving uout.\n");
         return 1;
     }

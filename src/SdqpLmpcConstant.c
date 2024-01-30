@@ -105,7 +105,7 @@ static void _get_column_M4(
         }
 
         // Multiply with (...)^-1
-        multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_VLA(m_temp1));
+        multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
 
         // Multiply with Qhat
         for (size_t i = 0; i < N-1; ++i) {
@@ -114,7 +114,7 @@ static void _get_column_M4(
         linalg_matrix_vector_product(n_x, n_x, S, &m_temp1[(N-1)*n_x], &m_temp2[(N-1)*n_x]);
 
         // Multiply with (...)^-T
-        multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_VLA(m_temp2));
+        multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp2, n_x));
 
         // Multiply with Bhat_T, write result to first n_a elements of column_M4
         for (size_t i = 0; i < N; ++i) {
@@ -169,7 +169,7 @@ static void _get_column_M4(
                 memcpy(&m_temp1[n_x*(N-1)], Lt[local_index - 2*n_y*(N-1)], sizeof(real_t)*n_x);
             }
             //Multiply with Bhat^T*(...)^-T and store result in column_M4
-            multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_VLA(m_temp1));
+            multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
             for (size_t i = 0; i < N; ++i) {
                 for (size_t j = 0; j < n_x; ++j) {
                     linalg_vector_add_scaled(n_u, &column_M4[i*n_u], B[j], m_temp1[i*n_x + j], &column_M4[i*n_u]);
@@ -192,9 +192,9 @@ static void get_column_M4(size_t index, real_t *column_M4) {
     _get_column_M4(index,
         m_n_x, m_n_u, m_n_y, m_n_t, m_N,
         m_n_M, m_n_H, m_n_a,
-        CAST_CONST_VLA(m_Q), CAST_CONST_VLA(m_S), CAST_CONST_VLA(m_R),
-        CAST_CONST_VLA(m_A), CAST_CONST_VLA(m_B), CAST_CONST_VLA(m_C),
-        CAST_CONST_VLA(m_Lt),
+        CAST_CONST_2D_VLA(m_Q, m_n_x), CAST_CONST_2D_VLA(m_S, m_n_x), CAST_CONST_2D_VLA(m_R, m_n_u),
+        CAST_CONST_2D_VLA(m_A, m_n_x), CAST_CONST_2D_VLA(m_B, m_n_u), CAST_CONST_2D_VLA(m_C, m_n_x),
+        CAST_CONST_2D_VLA(m_Lt, m_n_x),
         column_M4);
 }
 
@@ -257,7 +257,7 @@ static void initialize_y(
     }
     linalg_matrix_vector_product(n_x, n_x, S, &m_temp1[(N-1)*n_x], &m_temp2[(N-1)*n_x]);
     // Multiply MH2T (result n_a, add to first n_a of y)
-    multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_VLA(m_temp2));
+    multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp2, n_x));
     for (size_t i = 0; i < N; ++i) {
         for (size_t j = 0; j < n_x; ++j) {
             linalg_vector_add_scaled(n_u, &y[i*n_u], B[j], m_temp2[i*n_x + j], &y[i*n_u]);
@@ -288,7 +288,7 @@ static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H,
     }
     
     // Multiply x with (I-Ahat)^-1 and write result to x
-    multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_VLA(x));
+    multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(x, n_x));
 }
 
 static void compute_m5(
@@ -325,7 +325,7 @@ static void compute_m5(
         }
         linalg_matrix_vector_product(n_x, n_u, B, &m_temp3[n_M + i*n_u], &m_temp3[i*n_x]);
     }
-    multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_VLA(m_temp3));
+    multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp3, n_x));
 
     // Multiply out of place with Hb, store result in last n_b of m5)
     for (size_t i = 0; i < N-1; ++i) {
@@ -372,7 +372,7 @@ static void compute_m5(
         m_m5[i] += fu[i % n_u]; // This part can go directly to m5 because of I in MH2T
     }
     // Multiply MH2T (result n_a, stored in first n_a of m5)
-    multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_VLA(m_temp1));
+    multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
     for (size_t i = 0; i < N; ++i) {
         for (size_t j = 0; j < n_x; ++j) {
             linalg_vector_add_scaled(n_u, &m_m5[i*n_u], B[j], m_temp1[i*n_x + j], &m_m5[i*n_u]);
@@ -471,15 +471,15 @@ int sdqp_lmpc_constant_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n
     iterable_set_clear(&m_a_set);
     indexed_vectors_clear(&m_invq);
     initialize_y(n_x, n_u, m_n_y, m_n_t, N, m_n_H, 
-		CAST_CONST_VLA(m_Q), CAST_CONST_VLA(m_S), CAST_CONST_VLA(m_R),
-		CAST_CONST_VLA(m_A), CAST_CONST_VLA(m_B), CAST_CONST_VLA(m_C),
-		CAST_CONST_VLA(m_Lt), x0, m_y);
+		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u),
+		CAST_CONST_2D_VLA(m_A, n_x), CAST_CONST_2D_VLA(m_B, n_u), CAST_CONST_2D_VLA(m_C, n_x),
+		CAST_CONST_2D_VLA(m_Lt, n_x), x0, m_y);
     int err = ramp_solve(m_n_H, m_n_z, &m_a_set, &m_invq, m_y);
     if (err) {
         return err;
     }
     compute_x_u(n_x, n_u, N, m_n_H, 
-            CAST_CONST_VLA(m_A), CAST_CONST_VLA(m_B), 
+            CAST_CONST_2D_VLA(m_A, n_x), CAST_CONST_2D_VLA(m_B, n_u), 
             x0, m_u_max, &m_a_set, m_y, 
             x, u);
     return 0;
