@@ -43,7 +43,6 @@ static indexed_vectors_t m_invq;
 static iterable_set_t m_a_set;
 static real_t *m_y;
 
-static real_t *m_m5;
 static real_t *m_temp1; // Use x instead? Has length n_M and x is unused in initialize_y
 static real_t *m_temp2;
 
@@ -372,7 +371,6 @@ void sdqp_lmpc_varying_init(
     iterable_set_init(&m_a_set, m_n_H);
     m_y = (real_t*)malloc(sizeof(real_t)*m_n_H);
 
-    m_m5 = (real_t*)malloc(sizeof(real_t)*m_n_H);
     m_temp1 = (real_t*)malloc(sizeof(real_t)*m_n_M);
     m_temp2 = (real_t*)malloc(sizeof(real_t)*m_n_M);
 
@@ -386,7 +384,6 @@ void sdqp_lmpc_varying_cleanup(void) {
 
 	free(m_y);
 
-	free(m_m5);
 	free(m_temp1);
 	free(m_temp2);
 
