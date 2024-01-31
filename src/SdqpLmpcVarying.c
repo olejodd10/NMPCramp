@@ -231,12 +231,8 @@ static void initialize_y(
 {
     // MH[0 ha] (result n_z, but last n_a are just ha) (actually multiplication with MH2 (not transposed))
     for (size_t i = 0; i < N; ++i) {
-        // Initialize ha
-        for (size_t j = 0; j < n_u; ++j) {
-            m_temp2[n_M + i*n_u + j] = u_max[j]; // Initialize ha first
-        }
         // Compute Bhat*[0 ha] 
-        linalg_matrix_vector_product(n_x, n_u, B[i], &m_temp2[n_M + i*n_u], &m_temp2[i*n_x]);
+        linalg_matrix_vector_product(n_x, n_u, B[i], u_max, &m_temp2[i*n_x]);
     }
     // Now, before multiplying with (...)^-1, is a perfect time to add A0x0 (result n_x) to get MH[A0x0 ha] easily
     for (size_t i = 0; i < n_x; ++i) {
@@ -255,7 +251,7 @@ static void initialize_y(
     }
     linalg_matrix_vector_product(n_t, n_x, Lt, &m_temp2[(N-1)*n_x], &y[n_a + 2*(N-1)*n_y]);
     for (size_t i = 0; i < n_a; ++i) {
-        y[n_a + 2*(N-1)*n_y + n_t + i] = -m_temp2[n_M + i]; // Alternatively -u_max[i % n_u]
+        y[n_a + 2*(N-1)*n_y + n_t + i] = -u_max[i % n_u];
     }
 
     // Subtract hb from last n_b of y
@@ -279,7 +275,7 @@ static void initialize_y(
     }
     linalg_matrix_vector_product(n_x, n_x, S, &m_temp2[(N-1)*n_x], &m_temp1[(N-1)*n_x]);
     for (size_t i = 0; i < N; ++i) {
-        linalg_matrix_vector_product(n_u, n_u, R, &m_temp2[n_M + i*n_u], &y[i*n_u]); // This part can go directly to y because of I in MH2T. Also note that this overwrites y, which is nice
+        linalg_matrix_vector_product(n_u, n_u, R, u_max, &y[i*n_u]); // This part can go directly to y because of I in MH2T. Also note that this overwrites y, which is nice
     }
 
     // Add f
@@ -378,7 +374,7 @@ void sdqp_lmpc_varying_init(
 
     m_m5 = (real_t*)malloc(sizeof(real_t)*m_n_H);
     m_temp1 = (real_t*)malloc(sizeof(real_t)*m_n_M);
-    m_temp2 = (real_t*)malloc(sizeof(real_t)*m_n_z);
+    m_temp2 = (real_t*)malloc(sizeof(real_t)*m_n_M);
 
     ramp_init(m_n_H, get_column_M4);
     ramp_enable_infeasibility_error(1e-12, 1e12);
