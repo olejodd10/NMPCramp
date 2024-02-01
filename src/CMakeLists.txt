@@ -9,3 +9,6 @@ target_include_directories(SdqpLmpcVarying PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 add_library(LmpcVarying OBJECT Simulate.c Csv.c)
 target_link_libraries(LmpcVarying PUBLIC SdqpLmpcVarying)
+
+add_library(MmcModel OBJECT MmcModel.c LinAlg.c)
+target_include_directories(MmcModel PUBLIC ${CMAKE_SOURCE_DIR}/include)
