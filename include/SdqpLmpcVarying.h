@@ -31,4 +31,4 @@ void sdqp_lmpc_varying_cleanup(void);
 
 int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, 
         const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], 
-        real_t x[n_x*N], real_t u[n_u*N]);
+        real_t x[N][n_x], real_t u[N][n_u]);
