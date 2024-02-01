@@ -31,6 +31,7 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
 
 	real_t *A = (real_t*)malloc(sizeof(real_t)*N*n_x*n_x);
 	real_t *B = (real_t*)malloc(sizeof(real_t)*N*n_x*n_u);
+	real_t *d = (real_t*)malloc(sizeof(real_t)*N*n_x);
 	real_t *C = (real_t*)malloc(sizeof(real_t)*n_y*n_x);
 
     real_t *y_min = (real_t*)malloc(sizeof(real_t)*n_y);
@@ -85,6 +86,7 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
             return 1;
         }
     }
+    memset(d, 0, sizeof(real_t)*N*n_x);
     sprintf(path, "%s/C.csv", input_dir);
     if (csv_parse_matrix(path, n_y, n_x, CAST_2D_VLA(C, n_x))) { 
         printf("Error while parsing input matrix C.\n");
@@ -137,7 +139,7 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
     // Simulate
     for (size_t i = 0; i < simulation_timesteps; ++i) {
         int err = sdqp_lmpc_varying_solve(n_x, n_u, N, 
-                CAST_CONST_3D_VLA(A, n_x, n_x), CAST_CONST_3D_VLA(B, n_x, n_u), &xout[i*n_x], 
+                CAST_CONST_3D_VLA(A, n_x, n_x), CAST_CONST_3D_VLA(B, n_x, n_u), CAST_CONST_2D_VLA(d, n_x), &xout[i*n_x], 
                 x, u);
         if (err) {
             printf("Error while solving: %d\n", err);
@@ -170,6 +172,7 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
 
 	free(A);
 	free(B);
+    free(d);
 	free(C);
 
     free(y_min);

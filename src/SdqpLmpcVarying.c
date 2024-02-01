@@ -215,6 +215,7 @@ static void initialize_y(
 
         const real_t A[N][n_x][n_x],
         const real_t B[N][n_x][n_u],
+        const real_t d[N][n_x],
         const real_t C[n_y][n_x],
 
         const real_t y_min[n_y],
@@ -233,11 +234,15 @@ static void initialize_y(
         // Compute Bhat*[0 ha] 
         linalg_matrix_vector_product(n_x, n_u, B[i], u_max, &m_temp2[i*n_x]);
     }
-    // Now, before multiplying with (...)^-1, is a perfect time to add A0x0 (result n_x) to get MH[A0x0 ha] easily
+    // Add d
+    for (size_t i = 0; i < N; ++i) {
+        linalg_vector_add(n_x, &m_temp2[i*n_x], d[i], &m_temp2[i*n_x]);
+    }
+    // Now, before multiplying with (...)^-1, is a perfect time to add A0x0 (result n_x) to get MH[A0x0+d ha] easily
     for (size_t i = 0; i < n_x; ++i) {
         m_temp2[i] += linalg_vector_inner_product(n_x, A[0][i], x0);
     }
-    // Finish computing MH[A0x0 ha]
+    // Finish computing MH[A0x0+d ha]
     multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp2, n_x));
 
     // Multiply out of place with Hb, store result in last n_b of y
@@ -268,7 +273,7 @@ static void initialize_y(
         y[n_a + 2*n_y*(N-1) + n_t + i] += u_min[i % n_u];
     }
 
-    // Multiply MH[A0x0 ha] with P (result n_z, but n_a of it can go directly to y because of I in MH2T)
+    // Multiply MH[A0x0+d ha] with P (result n_z, but n_a of it can go directly to y because of I in MH2T)
     for (size_t i = 0; i < N-1; ++i) {
         linalg_matrix_vector_product(n_x, n_x, Q, &m_temp2[i*n_x], &m_temp1[i*n_x]);
     }
@@ -297,7 +302,7 @@ static void initialize_y(
 }
 
 static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H, 
-        const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t x0[n_x], const real_t u_max[n_u], const iterable_set_t *a_set, const real_t y[n_H],
+        const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], const real_t u_max[n_u], const iterable_set_t *a_set, const real_t y[n_H],
         real_t x[N*n_x], real_t u[N*n_u])
 {
     // Find ha-ra, store in last n_a elements of z (u)
@@ -309,8 +314,11 @@ static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H,
     for (size_t i = 0; i < N; ++i) {
         linalg_matrix_vector_product(n_x, n_u, B[i], &u[i*n_u], &x[i*n_x]);
     }
-
-    // Add b = A0x0 to first n_x elements
+    // Add d
+    for (size_t i = 0; i < N; ++i) {
+        linalg_vector_add(n_x, &x[i*n_x], d[i], &x[i*n_x]);
+    }
+    // Add A0x0 to first n_x elements
     for (size_t i = 0; i < n_x; ++i) {
         x[i] += linalg_vector_inner_product(n_x, A[0][i], x0);
     }
@@ -390,7 +398,7 @@ void sdqp_lmpc_varying_cleanup(void) {
     ramp_cleanup();
 }
 
-int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t x0[n_x], real_t x[n_x*N], real_t u[n_u*N]) {
+int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], real_t x[n_x*N], real_t u[n_u*N]) {
     // initialize y
     m_A = (real_t*)A;
     m_B = (real_t*)B;
@@ -398,7 +406,7 @@ int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][
     indexed_vectors_clear(&m_invq);
     initialize_y(n_x, n_u, m_n_y, m_n_t, N, m_n_H, m_n_H, m_n_a,
 		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u), m_fx, m_fu,
-		A, B, CAST_CONST_2D_VLA(m_C, n_x),
+		A, B, d, CAST_CONST_2D_VLA(m_C, n_x),
 		m_y_min, m_y_max, CAST_CONST_2D_VLA(m_Lt, n_x), m_lt, m_u_min, m_u_max, 
         x0, m_y);
     int err = ramp_solve(m_n_H, m_n_z, &m_a_set, &m_invq, m_y);
@@ -406,7 +414,7 @@ int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][
         return err;
     }
     compute_x_u(n_x, n_u, N, m_n_H, 
-            A, B, 
+            A, B, d,
             x0, m_u_max, &m_a_set, m_y, 
             x, u);
     return 0;
