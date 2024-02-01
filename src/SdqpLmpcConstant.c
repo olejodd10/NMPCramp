@@ -270,21 +270,21 @@ static void initialize_y(
 
 static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H, 
         const real_t A[n_x][n_x], const real_t B[n_x][n_u], const real_t x0[n_x], const real_t u_max[n_u], const iterable_set_t *a_set, const real_t y[n_H],
-        real_t x[N*n_x], real_t u[N*n_u])
+        real_t x[N][n_x], real_t u[N][n_u])
 {
     // Find ha-ra, store in last n_a elements of z (u)
     for (size_t i = 0; i < N*n_u; ++i) { // n_a == N*n_u
-        u[i] = iterable_set_contains(a_set, i) ? u_max[i % n_u] - y[i] : u_max[i % n_u]; // y_a is in the start of y
+        u[i/n_u][i%n_u] = iterable_set_contains(a_set, i) ? u_max[i % n_u] - y[i] : u_max[i % n_u]; // y_a is in the start of y
     }
 
     // Multiply ha-ra with Bhat, and write result to first n_M elements of z (x)
     for (size_t i = 0; i < N; ++i) {
-        linalg_matrix_vector_product(n_x, n_u, B, &u[i*n_u], &x[i*n_x]);
+        linalg_matrix_vector_product(n_x, n_u, B, u[i], x[i]);
     }
 
     // Add b = A0x0 to first n_x elements
     for (size_t i = 0; i < n_x; ++i) {
-        x[i] += linalg_vector_inner_product(n_x, A[i], x0);
+        x[0][i] += linalg_vector_inner_product(n_x, A[i], x0);
     }
     
     // Multiply x with (I-Ahat)^-1 and write result to x
@@ -466,7 +466,7 @@ void sdqp_lmpc_constant_cleanup(void) {
     ramp_cleanup();
 }
 
-int sdqp_lmpc_constant_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n_x], real_t x[n_x*N], real_t u[n_u*N]) {
+int sdqp_lmpc_constant_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
     // initialize y
     iterable_set_clear(&m_a_set);
     indexed_vectors_clear(&m_invq);

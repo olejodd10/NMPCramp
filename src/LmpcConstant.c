@@ -136,7 +136,7 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
 
     // Simulate
     for (size_t i = 0; i < simulation_timesteps; ++i) {
-        int err = sdqp_lmpc_constant_solve(n_x, n_u, N, &xout[i*n_x], x, u);
+        int err = sdqp_lmpc_constant_solve(n_x, n_u, N, &xout[i*n_x], CAST_2D_VLA(x, n_x), CAST_2D_VLA(u, n_u));
         if (err) {
             printf("Error while solving: %d\n", err);
             return 1;

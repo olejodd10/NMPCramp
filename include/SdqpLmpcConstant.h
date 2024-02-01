@@ -33,4 +33,4 @@ void sdqp_lmpc_constant_cleanup(void);
 int sdqp_lmpc_constant_solve(
         size_t n_x, size_t n_u, size_t N, 
         const real_t x0[n_x], 
-        real_t x[n_x*N], real_t u[n_u*N]);
+        real_t x[N][n_x], real_t u[N][n_u]);
