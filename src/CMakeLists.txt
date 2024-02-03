@@ -12,3 +12,6 @@ target_link_libraries(LmpcVarying PUBLIC SdqpLmpcVarying)
 
 add_library(MmcModel OBJECT MmcModel.c LinAlg.c)
 target_include_directories(MmcModel PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
+add_library(SdqpLmpcMmc STATIC Ramp.c SdqpLmpcMmc.c LinAlg.c IndexedVectors.c IterableSet.c)
+target_include_directories(SdqpLmpcMmc PUBLIC ${CMAKE_SOURCE_DIR}/include)
