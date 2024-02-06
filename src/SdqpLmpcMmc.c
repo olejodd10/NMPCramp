@@ -20,11 +20,8 @@ static size_t m_n_M;
 static size_t m_n_H;
 static size_t m_n_a;
 
-static const real_t *m_Q;
-static const real_t *m_S;
-static const real_t *m_R;
-static const real_t *m_fx;
-static const real_t *m_fu;
+static real_t m_q1;
+static real_t m_q2;
 
 static const real_t *m_A;
 static const real_t *m_B;
@@ -71,9 +68,8 @@ static void _get_column_M4(
         size_t n_H,
         size_t n_a,
 
-        const real_t Q[n_x][n_x],
-        const real_t S[n_x][n_x],
-        const real_t R[n_u][n_u],
+        real_t q1,
+        real_t q2,
 
         const real_t A[N][n_x][n_x],
         const real_t B[N][n_x][n_u],
@@ -97,10 +93,12 @@ static void _get_column_M4(
         multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
 
         // Multiply with Qhat
-        for (size_t i = 0; i < N-1; ++i) {
-            linalg_matrix_vector_product(n_x, n_x, Q, &m_temp1[i*n_x], &m_temp2[i*n_x]); // We only use the first n_M of m_temp2 in this case
+        for (size_t i = 0; i < N; ++i) {
+            m_temp2[i*n_x + 0] = q1*m_temp1[i*n_x + 0];
+            m_temp2[i*n_x + 1] = q2*m_temp1[i*n_x + 1];
+            m_temp2[i*n_x + 2] = 0.0;
+            m_temp2[i*n_x + 3] = 0.0;
         }
-        linalg_matrix_vector_product(n_x, n_x, S, &m_temp1[(N-1)*n_x], &m_temp2[(N-1)*n_x]);
 
         // Multiply with (...)^-T
         multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp2, n_x));
@@ -113,9 +111,7 @@ static void _get_column_M4(
         }
 
         // Add (subtract) Rhat column
-        for (size_t i = 0; i < n_u; ++i) {
-            column_M4[(index/n_u)*n_u+i] -= R[i][index % n_u];
-        }
+        // R is zero for MMC
 
         // Add I-element
         // This is done equally for left and right part, see bottom of function
@@ -180,7 +176,7 @@ static void get_column_M4(size_t index, real_t *column_M4) {
     _get_column_M4(index,
         m_n_x, m_n_u, m_N,
         m_n_M, m_n_H, m_n_a,
-        CAST_CONST_2D_VLA(m_Q, m_n_x), CAST_CONST_2D_VLA(m_S, m_n_x), CAST_CONST_2D_VLA(m_R, m_n_x),
+        m_q1, m_q2,
         CAST_CONST_3D_VLA(m_A, m_n_x, m_n_x), CAST_CONST_3D_VLA(m_B, m_n_x, m_n_u),
         column_M4);
 }
@@ -194,11 +190,10 @@ static void initialize_y(
         size_t n_H, 
         size_t n_a, 
 
-        const real_t Q[n_x][n_x],
-        const real_t S[n_x][n_x],
-        const real_t R[n_u][n_u],
-        const real_t fx[n_x],
-        const real_t fu[n_u],
+        real_t q1,
+        real_t q2,
+        const real_t x1_ref[N],
+        real_t x2_ref,
 
         const real_t A[N][n_x][n_x],
         const real_t B[N][n_x][n_u],
@@ -267,24 +262,18 @@ static void initialize_y(
         y[n_a + 2*(n_M + N) + i] += u_min[i % n_u];
     }
 
-    // Multiply MH[A0x0+d ha] with P (result n_z, but n_a of it can go directly to y because of I in MH2T)
-    for (size_t i = 0; i < N-1; ++i) {
-        linalg_matrix_vector_product(n_x, n_x, Q, &m_temp2[i*n_x], &m_temp1[i*n_x]);
-    }
-    linalg_matrix_vector_product(n_x, n_x, S, &m_temp2[(N-1)*n_x], &m_temp1[(N-1)*n_x]);
+    // Multiply MH[A0x0+d ha] with P, then add f (result n_z, but n_a of it can go directly to y because of I in MH2T)
     for (size_t i = 0; i < N; ++i) {
-        linalg_matrix_vector_product(n_u, n_u, R, u_max, &y[i*n_u]); // This part can go directly to y because of I in MH2T. Also note that this overwrites y, which is nice
+        m_temp1[i*n_x + 0] = q1*(m_temp2[i*n_x + 0] - x1_ref[i]);
+        m_temp1[i*n_x + 1] = q2*(m_temp2[i*n_x + 1] - x2_ref);
+        m_temp1[i*n_x + 2] = 0.0;
+        m_temp1[i*n_x + 3] = 0.0;
     }
+    // R and f_u are zero for MMC, so latter parts vanish
 
-    // Add f
-    for (size_t i = 0; i < n_M; ++i) {
-        m_temp1[i] += fx[i % n_x];
-    }
-    for (size_t i = 0; i < n_a; ++i) {
-        y[i] += fu[i % n_u]; // This part can go directly to y because of I in MH2T
-    }
     // Multiply MH2T (result n_a, stored in first n_a of y)
     multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
+    memset(y, 0, sizeof(real_t)*n_a); // Needed for transpose product
     for (size_t i = 0; i < N; ++i) {
         for (size_t j = 0; j < n_x; ++j) {
             linalg_vector_add_scaled(n_u, &y[i*n_u], B[i][j], m_temp1[i*n_x + j], &y[i*n_u]);
@@ -326,11 +315,8 @@ void sdqp_lmpc_mmc_init(
         size_t n_u,
         size_t N,
 
-        const real_t Q[n_x][n_x],
-        const real_t S[n_x][n_x],
-        const real_t R[n_u][n_u],
-        const real_t fx[n_x],
-        const real_t fu[n_u],
+        real_t q1,
+        real_t q2,
 
         const real_t x_min[n_x],
         const real_t x_max[n_x],
@@ -347,11 +333,8 @@ void sdqp_lmpc_mmc_init(
     m_n_H = 2*N*(n_x+1+n_u);
     m_n_a = n_u*N;
 
-    m_Q = (real_t*)Q;
-    m_S = (real_t*)S;
-    m_R = (real_t*)R;
-    m_fx = (real_t*)fx; // Actually unused after m5 is initialized
-    m_fu = (real_t*)fu; // Actually unused after m5 is initialized
+    m_q1 = q1;
+    m_q2 = q2;
 
     m_x_min = (real_t*)x_min;
     m_x_max = (real_t*)x_max;
@@ -382,14 +365,14 @@ void sdqp_lmpc_mmc_cleanup(void) {
     ramp_cleanup();
 }
 
-int sdqp_lmpc_mmc_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
+int sdqp_lmpc_mmc_solve(size_t n_x, size_t n_u, size_t N, const real_t x1_ref[N], real_t x2_ref, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
     // initialize y
     m_A = (real_t*)A;
     m_B = (real_t*)B;
     iterable_set_clear(&m_a_set);
     indexed_vectors_clear(&m_invq);
     initialize_y(n_x, n_u, N, m_n_H, m_n_H, m_n_a,
-		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u), m_fx, m_fu,
+        m_q1, m_q2, x1_ref, x2_ref,
 		A, B, d,
         m_x_min, m_x_max, m_n_sm, m_u_min, m_u_max, 
         x0, m_y);
