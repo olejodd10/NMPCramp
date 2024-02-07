@@ -58,7 +58,7 @@ void mmc_model_get_init(size_t N, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], 
 }
 
 // Assumes A, B and d are zero in unused elements
-void mmc_model_get(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], const real_t vf[N], const real_t Vdc[N], real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]) {
+void mmc_model_get(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], const real_t vf[N], real_t Vdc, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]) {
     for (size_t i = 0; i < N; ++i) {
         A[i][0][2] = B0_02*u[i][0];
         A[i][0][3] = B1_03*u[i][1];
@@ -77,7 +77,7 @@ void mmc_model_get(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], con
         B[i][3][1] = B1_30*x[i][0] + B1_31*x[i][1];
 
         d[i][0] = d_0*vf[i] - linalg_vector_inner_product(N_U, B[i][0], u[i]);
-        d[i][1] = d_1*Vdc[i] - linalg_vector_inner_product(N_U, B[i][1], u[i]);    
+        d[i][1] = d_1*Vdc - linalg_vector_inner_product(N_U, B[i][1], u[i]);    
         d[i][2] = - linalg_vector_inner_product(N_U, B[i][2], u[i]);
         d[i][3] = - linalg_vector_inner_product(N_U, B[i][3], u[i]);
     }

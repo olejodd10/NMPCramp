@@ -11,4 +11,4 @@ void mmc_model_set_parameters(real_t R, real_t Rc, real_t L, real_t Lc, real_t C
 
 void mmc_model_get_init(size_t N, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]);
 
-void mmc_model_get(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], const real_t vf[N], const real_t Vdc[N], real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]);
+void mmc_model_get(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], const real_t vf[N], real_t Vdc, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]);
