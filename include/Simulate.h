@@ -17,3 +17,5 @@
  * @warning x and res can not be the same arrays
  */
 void simulate_lti(size_t n, size_t p, const real_t a[n][n], const real_t x[n], const real_t b[n][p], const real_t u[p], real_t res[n]);
+
+void simulate_affine(size_t n, size_t p, const real_t a[n][n], const real_t x[n], const real_t b[n][p], const real_t u[p], const real_t d[n], real_t res[n]);
