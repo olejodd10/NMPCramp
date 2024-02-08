@@ -29,6 +29,7 @@ static const real_t *m_B;
 static const real_t *m_x_min;
 static const real_t *m_x_max;
 static real_t m_n_sm;
+static real_t m_insertion_index_deviation_allowance;
 static const real_t *m_u_min;
 static const real_t *m_u_max;
 
@@ -202,6 +203,7 @@ static void initialize_y(
         const real_t x_min[n_x],
         const real_t x_max[n_x],
         real_t n_sm,
+        real_t insertion_index_deviation_allowance,
         const real_t u_min[n_u],
         const real_t u_max[n_u],
 
@@ -253,10 +255,10 @@ static void initialize_y(
         y[n_a + n_M + i] -= x_max[i % n_x];
     }
     for (size_t i = 0; i < N; ++i) {
-        y[n_a + 2*n_M + i] += n_sm - 2.0;
+        y[n_a + 2*n_M + i] += n_sm - insertion_index_deviation_allowance;
     }
     for (size_t i = 0; i < N; ++i) {
-        y[n_a + 2*n_M + N + i] += 2.0 - n_sm;
+        y[n_a + 2*n_M + N + i] += insertion_index_deviation_allowance - n_sm;
     }
     for (size_t i = 0; i < n_u*N; ++i) {
         y[n_a + 2*(n_M + N) + i] += u_min[i % n_u];
@@ -321,6 +323,7 @@ void sdqp_lmpc_mmc_init(
         const real_t x_min[n_x],
         const real_t x_max[n_x],
         real_t n_sm,
+        real_t insertion_index_deviation_allowance,
         const real_t u_min[n_u],
         const real_t u_max[n_u]
 ) {
@@ -339,6 +342,7 @@ void sdqp_lmpc_mmc_init(
     m_x_min = (real_t*)x_min;
     m_x_max = (real_t*)x_max;
     m_n_sm = n_sm;
+    m_insertion_index_deviation_allowance = insertion_index_deviation_allowance;
     m_u_min = (real_t*)u_min;
     m_u_max = (real_t*)u_max;
 
@@ -374,7 +378,7 @@ int sdqp_lmpc_mmc_solve(size_t n_x, size_t n_u, size_t N, const real_t x1_ref[N]
     initialize_y(n_x, n_u, N, m_n_H, m_n_H, m_n_a,
         m_q1, m_q2, x1_ref, x2_ref,
 		A, B, d,
-        m_x_min, m_x_max, m_n_sm, m_u_min, m_u_max, 
+        m_x_min, m_x_max, m_n_sm, m_insertion_index_deviation_allowance, m_u_min, m_u_max, 
         x0, m_y);
     int err = ramp_solve(m_n_H, m_n_z, &m_a_set, &m_invq, m_y);
     if (err) {
