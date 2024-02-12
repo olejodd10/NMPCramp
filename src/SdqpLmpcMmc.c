@@ -255,10 +255,10 @@ static void initialize_y(
         y[n_a + n_M + i] -= x_max[i % n_x];
     }
     for (size_t i = 0; i < N; ++i) {
-        y[n_a + 2*n_M + i] += n_sm - insertion_index_deviation_allowance;
+        y[n_a + 2*n_M + i] -= insertion_index_deviation_allowance - n_sm;
     }
     for (size_t i = 0; i < N; ++i) {
-        y[n_a + 2*n_M + N + i] += insertion_index_deviation_allowance - n_sm;
+        y[n_a + 2*n_M + N + i] -= insertion_index_deviation_allowance + n_sm;
     }
     for (size_t i = 0; i < n_u*N; ++i) {
         y[n_a + 2*(n_M + N) + i] += u_min[i % n_u];
@@ -375,7 +375,7 @@ int sdqp_lmpc_mmc_solve(size_t n_x, size_t n_u, size_t N, const real_t x1_ref[N]
     m_B = (real_t*)B;
     iterable_set_clear(&m_a_set);
     indexed_vectors_clear(&m_invq);
-    initialize_y(n_x, n_u, N, m_n_H, m_n_H, m_n_a,
+    initialize_y(n_x, n_u, N, m_n_M, m_n_H, m_n_a,
         m_q1, m_q2, x1_ref, x2_ref,
 		A, B, d,
         m_x_min, m_x_max, m_n_sm, m_insertion_index_deviation_allowance, m_u_min, m_u_max, 
