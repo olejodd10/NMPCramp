@@ -35,3 +35,8 @@ add_test(NAME TestLmpcVarying_QPrampExample2_Verify_Xout COMMAND python ${CMAKE_
 add_test(NAME TestLmpcVarying_QPrampExample3 COMMAND TestLmpcVarying ${CMAKE_CURRENT_SOURCE_DIR}/data/QPramp/example3 ${CMAKE_CURRENT_SOURCE_DIR}/data/QPramp/example3 10 100)
 add_test(NAME TestLmpcVarying_QPrampExample3_Verify_Uout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/QPramp/example3/uref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/QPramp/example3/uout.csv 6e-6)
 add_test(NAME TestLmpcVarying_QPrampExample3_Verify_Xout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/QPramp/example3/xref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/QPramp/example3/xout.csv 5e-5)
+
+add_test(NAME TestSimulateMmc_Horizon1 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/MMC 1 100)
+add_test(NAME TestSimulateMmc_Horizon2 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/MMC 2 100)
+add_test(NAME TestSimulateMmc_Horizon5 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/MMC 5 100)
+add_test(NAME TestSimulateMmc_Horizon10 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/MMC 10 100)

@@ -10,8 +10,8 @@ target_include_directories(SdqpLmpcVarying PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_library(LmpcVarying OBJECT Simulate.c Csv.c)
 target_link_libraries(LmpcVarying PUBLIC SdqpLmpcVarying)
 
-add_library(MmcModel OBJECT MmcModel.c LinAlg.c)
-target_include_directories(MmcModel PUBLIC ${CMAKE_SOURCE_DIR}/include)
-
 add_library(SdqpLmpcMmc STATIC Ramp.c SdqpLmpcMmc.c LinAlg.c IndexedVectors.c IterableSet.c)
 target_include_directories(SdqpLmpcMmc PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
+add_library(SimulateMmc OBJECT Csv.c Extrapolate.c MmcModel.c MmcTrajectory.c Simulate.c)
+target_link_libraries(SimulateMmc PUBLIC m SdqpLmpcMmc)

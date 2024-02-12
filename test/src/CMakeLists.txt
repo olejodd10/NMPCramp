@@ -3,3 +3,6 @@ target_link_libraries(TestLmpcConstant PRIVATE LmpcConstant)
 
 add_executable(TestLmpcVarying TestLmpcVarying.c)
 target_link_libraries(TestLmpcVarying PRIVATE LmpcVarying)
+
+add_executable(TestSimulateMmc TestSimulateMmc.c)
+target_link_libraries(TestSimulateMmc PRIVATE SimulateMmc)
