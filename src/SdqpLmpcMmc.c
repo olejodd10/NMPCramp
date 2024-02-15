@@ -309,7 +309,7 @@ static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H,
     }
     
     // Multiply x with (I-Ahat)^-1 and write result to x
-    multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(x, n_x));
+    multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, x);
 }
 
 void sdqp_lmpc_mmc_init(
