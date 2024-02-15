@@ -46,7 +46,6 @@ static real_t *m_y;
 static real_t *m_m5;
 static real_t *m_temp1; // Use x instead? Has length n_M and x is unused in initialize_y
 static real_t *m_temp2;
-static real_t *m_temp3;
 
 // in-place version, v = (I-Ahat)^-1 * v
 static void multiply_inv_eye_sub_Ahat_inplace(size_t n_x, size_t N, const real_t A[n_x][n_x], real_t v[N][n_x]) {
@@ -320,22 +319,19 @@ static void compute_m5(
 {
     // MH[0 ha] (result n_z, but last n_a are just ha) (actually multiplication with MH2 (not transposed))
     for (size_t i = 0; i < N; ++i) {
-        for (size_t j = 0; j < n_u; ++j) {
-            m_temp3[n_M + i*n_u + j] = u_max[j]; // Initialize ha first
-        }
-        linalg_matrix_vector_product(n_x, n_u, B, &m_temp3[n_M + i*n_u], &m_temp3[i*n_x]);
+        linalg_matrix_vector_product(n_x, n_u, B, u_max, &m_temp2[i*n_x]);
     }
-    multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp3, n_x));
+    multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp2, n_x));
 
     // Multiply out of place with Hb, store result in last n_b of m5)
     for (size_t i = 0; i < N-1; ++i) {
         for (size_t j = 0; j < n_y ; ++j) {
-            real_t temp = linalg_vector_inner_product(n_x, C[j], &m_temp3[i*n_x]);
+            real_t temp = linalg_vector_inner_product(n_x, C[j], &m_temp2[i*n_x]);
             m_m5[n_a + i*n_y + j] = -temp;
             m_m5[n_a + (i+N-1)*n_y + j] = temp;
         }
     }
-    linalg_matrix_vector_product(n_t, n_x, Lt, &m_temp3[(N-1)*n_x], &m_m5[n_a + 2*(N-1)*n_y]);
+    linalg_matrix_vector_product(n_t, n_x, Lt, &m_temp2[(N-1)*n_x], &m_m5[n_a + 2*(N-1)*n_y]);
     for (size_t i = 0; i < n_a; ++i) {
         m_m5[n_a + 2*(N-1)*n_y + n_t + i] = -u_max[i % n_u];
     }
@@ -357,11 +353,11 @@ static void compute_m5(
 
     // Multiply MH[0 ha] with P (result n_z, but n_a of it can go directly to m5 because of I in MH2T)
     for (size_t i = 0; i < N-1; ++i) {
-        linalg_matrix_vector_product(n_x, n_x, Q, &m_temp3[i*n_x], &m_temp1[i*n_x]);
+        linalg_matrix_vector_product(n_x, n_x, Q, &m_temp2[i*n_x], &m_temp1[i*n_x]);
     }
-    linalg_matrix_vector_product(n_x, n_x, S, &m_temp3[(N-1)*n_x], &m_temp1[(N-1)*n_x]);
+    linalg_matrix_vector_product(n_x, n_x, S, &m_temp2[(N-1)*n_x], &m_temp1[(N-1)*n_x]);
     for (size_t i = 0; i < N; ++i) {
-        linalg_matrix_vector_product(n_u, n_u, R, &m_temp3[n_M + i*n_u], &m_m5[i*n_u]); // This part can go directly to m5 because of I in MH2T. Also note that this overwrites m5, which is nice
+        linalg_matrix_vector_product(n_u, n_u, R, u_max, &m_m5[i*n_u]); // This part can go directly to m5 because of I in MH2T. Also note that this overwrites m5, which is nice
     }
 
     // Add f
@@ -439,7 +435,6 @@ void sdqp_lmpc_constant_init(
     m_m5 = (real_t*)malloc(sizeof(real_t)*m_n_H);
     m_temp1 = (real_t*)malloc(sizeof(real_t)*m_n_M);
     m_temp2 = (real_t*)malloc(sizeof(real_t)*m_n_M);
-    m_temp3 = (real_t*)malloc(sizeof(real_t)*m_n_z);
 
     ramp_init(m_n_H, get_column_M4);
     ramp_enable_infeasibility_error(1e-12, 1e12);
@@ -461,7 +456,6 @@ void sdqp_lmpc_constant_cleanup(void) {
 	free(m_m5);
 	free(m_temp1);
 	free(m_temp2);
-	free(m_temp3);
 
     ramp_cleanup();
 }
