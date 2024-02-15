@@ -15,23 +15,20 @@ static uint8_t infeasiblity_error_enabled = 0;
 static real_t infeasibility_error_min;
 static real_t infeasibility_error_max;
 
-static real_t *m_column_m41;
-static real_t *m_column_m42;
+static real_t *m_column_M4;
 static real_t *m_v;
 
-static void (*m_get_column_m4)(size_t, real_t*);
+static void (*m_get_column_M4)(size_t, real_t*);
 
-void ramp_init(size_t n_H, void (*get_column_m4)(size_t, real_t*)) {
-    m_column_m41 = (real_t*)malloc(sizeof(real_t)*n_H);
-    m_column_m42 = (real_t*)malloc(sizeof(real_t)*n_H);
+void ramp_init(size_t n_H, void (*get_column_M4)(size_t, real_t*)) {
+    m_column_M4 = (real_t*)malloc(sizeof(real_t)*n_H);
     m_v = (real_t*)malloc(sizeof(real_t)*n_H);
     
-    m_get_column_m4 = get_column_m4;
+    m_get_column_M4 = get_column_M4;
 }
 
 void ramp_cleanup(void) {
-	free(m_column_m41);
-	free(m_column_m42);
+	free(m_column_M4);
 	free(m_v);
 }
 
@@ -74,13 +71,13 @@ static inline size_t most_positive_index(size_t n_H, const iterable_set_t* a_set
 static int compute_v(size_t n_H, const iterable_set_t* a_set, const indexed_vectors_t *invq, size_t index, real_t q0, real_t v[n_H]) {
     // Compute matrix vector product
     // Sparse part
-    m_get_column_m4(index, m_column_m41);
+    m_get_column_M4(index, m_column_M4);
     for (size_t i = 0; i < n_H; ++i) {
-        v[i] = iterable_set_contains(a_set, i) ? 0.0 : m_column_m41[i]; // 0.0 because the "dense part" computation takes care of the value
+        v[i] = iterable_set_contains(a_set, i) ? 0.0 : m_column_M4[i]; // 0.0 because the "dense part" computation takes care of the value
     }
     // Dense part
     for (size_t i = iterable_set_first(a_set); i != iterable_set_end(a_set); i = iterable_set_next(a_set, i)) {
-        linalg_vector_add_scaled(n_H, v, indexed_vectors_get(invq, i), m_column_m41[i], v);
+        linalg_vector_add_scaled(n_H, v, indexed_vectors_get(invq, i), m_column_M4[i], v);
     }
     // At this point v is defined as in the paper
     real_t qdiv = q0+v[index];
@@ -97,12 +94,12 @@ static int compute_v(size_t n_H, const iterable_set_t* a_set, const indexed_vect
 static inline size_t rank_2_update_removal_index(size_t n_H, const iterable_set_t* a_set, const indexed_vectors_t *invq, size_t i, const real_t y[n_H]) {
     real_t max = 0.0;
     size_t index = n_H;
-    m_get_column_m4(i, m_column_m42);
+    m_get_column_M4(i, m_column_M4);
     for (size_t j = iterable_set_first(a_set); j != iterable_set_end(a_set); j = iterable_set_next(a_set, j)) {
         real_t divisor = 0.0;
         for (size_t k = iterable_set_first(a_set); k != iterable_set_end(a_set); k = iterable_set_next(a_set, k)) {
             // Note that the order of indices for neg_g_invh_gt doesn't matter since it's symmetric
-            divisor += indexed_vectors_get(invq, k)[j] * m_column_m42[k];
+            divisor += indexed_vectors_get(invq, k)[j] * m_column_M4[k];
         }
         if ((divisor < -RAMP_EPS) && (y[j]/divisor > max || index == n_H)) {
             max = y[j]/divisor;
