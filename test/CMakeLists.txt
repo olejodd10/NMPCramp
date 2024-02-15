@@ -37,3 +37,5 @@ add_test(NAME TestSimulateMmc_Horizon1 COMMAND TestSimulateMmc ${CMAKE_CURRENT_S
 add_test(NAME TestSimulateMmc_Horizon2 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/MMC 2 100)
 add_test(NAME TestSimulateMmc_Horizon5 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/MMC 5 100)
 add_test(NAME TestSimulateMmc_Horizon10 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/MMC 10 100)
+
+add_subdirectory(mex)
