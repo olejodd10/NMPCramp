@@ -17,4 +17,4 @@ void ramp_enable_infeasibility_error(real_t min, real_t max);
 
 void ramp_disable_infeasibility_error(void);
 
-int ramp_solve(size_t n_H, size_t n_z, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]);
+int ramp_solve(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]);

@@ -375,7 +375,7 @@ void sdqp_lmpc_varying_init(
     m_u_min = (real_t*)u_min;
     m_u_max = (real_t*)u_max;
 
-    indexed_vectors_init(&m_invq, m_n_z, m_n_H, m_n_H);
+    indexed_vectors_init(&m_invq, m_n_a, m_n_H, m_n_H);
     iterable_set_init(&m_a_set, m_n_H);
     m_y = (real_t*)malloc(sizeof(real_t)*m_n_H);
 
@@ -409,7 +409,7 @@ int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][
 		A, B, d, CAST_CONST_2D_VLA(m_C, n_x),
 		m_y_min, m_y_max, CAST_CONST_2D_VLA(m_Lt, n_x), m_lt, m_u_min, m_u_max, 
         x0, m_y);
-    int err = ramp_solve(m_n_H, m_n_z, &m_a_set, &m_invq, m_y);
+    int err = ramp_solve(m_n_H, m_n_a, &m_a_set, &m_invq, m_y);
     if (err) {
         return err;
     }

@@ -120,7 +120,7 @@ static inline void update_y(size_t n_H, size_t index, const real_t v[n_H], real_
     linalg_vector_add_scaled(n_H, y, v, y[index], y);
 }
 
-static int algorithm1(size_t n_H, size_t n_z, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
+static int algorithm1(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
     while (1) {
         size_t index = most_negative_index(n_H, a_set, y);
         if (index != n_H) {
@@ -138,7 +138,7 @@ static int algorithm1(size_t n_H, size_t n_z, iterable_set_t *a_set, indexed_vec
                 break;
             }
 
-            if (iterable_set_size(a_set) == n_z) {
+            if (iterable_set_size(a_set) == n_a) {
                 size_t index2 = rank_2_update_removal_index(n_H, a_set, invq, index, y);
                 if (index2 == n_H) {
                     return RAMP_ERROR_RANK_2_UPDATE;
@@ -168,6 +168,6 @@ static int algorithm1(size_t n_H, size_t n_z, iterable_set_t *a_set, indexed_vec
     return 0;
 }
 
-int ramp_solve(size_t n_H, size_t n_z, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
-    return algorithm1(n_H, n_z, a_set, invq, y);
+int ramp_solve(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
+    return algorithm1(n_H, n_a, a_set, invq, y);
 }
