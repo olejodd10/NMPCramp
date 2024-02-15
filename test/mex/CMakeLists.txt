@@ -2,9 +2,13 @@ add_test(NAME TestMexSimulateMmc_Horizons_1_2_5_10 COMMAND matlab -nodisplay -r
     "addpath(\"${CMAKE_BINARY_DIR}/mex\"), \
      addpath(\"${CMAKE_CURRENT_SOURCE_DIR}\"), \
      TestMexSimulateMmc(\"${CMAKE_SOURCE_DIR}/test/data/MMCMEX\", 1, 100), \
+     clear mex, \
      TestMexSimulateMmc(\"${CMAKE_SOURCE_DIR}/test/data/MMCMEX\", 2, 100), \
+     clear mex, \
      TestMexSimulateMmc(\"${CMAKE_SOURCE_DIR}/test/data/MMCMEX\", 5, 100), \
-     TestMexSimulateMmc(\"${CMAKE_SOURCE_DIR}/test/data/MMCMEX\", 10, 100), exit")
+     clear mex, \
+     TestMexSimulateMmc(\"${CMAKE_SOURCE_DIR}/test/data/MMCMEX\", 10, 100), \
+     exit")
 
 set(TEST_MEX_SIMULATE_MMC_COMPARISON_LIMIT 6e-3)
 

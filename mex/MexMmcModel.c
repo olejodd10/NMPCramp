@@ -9,8 +9,8 @@
 #include "MmcModel.h"
 #include "Types.h"
 
-#define NRHS 12
-#define NLHS 3
+#define NRHS 15
+#define NLHS 0
 
 static int initialized = 0;
 
@@ -50,22 +50,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     real_t *vf = mxGetSingles(prhs[10]);
     real_t Vdc = mxGetScalar(prhs[11]);
 
-    mwSize A_dims[] = {(mwSize)N_X, (mwSize)N_X, (mwSize)N};
-    plhs[0] = mxCreateNumericArray(3, A_dims, mxSINGLE_CLASS, mxREAL);
-    real_t *A = mxGetSingles(plhs[0]);
-
-    mwSize B_dims[] = {(mwSize)N_U, (mwSize)N_X, (mwSize)N};
-    plhs[1] = mxCreateNumericArray(3, B_dims, mxSINGLE_CLASS, mxREAL);
-    real_t *B = mxGetSingles(plhs[1]);
-
-    mwSize d_dims[] = {(mwSize)N_X, (mwSize)N};
-    plhs[2] = mxCreateNumericArray(2, d_dims, mxSINGLE_CLASS, mxREAL);
-    real_t *d = mxGetSingles(plhs[2]);
+    if (mex_assert_3d_array_dimensions(prhs[12], N_X, N_X, N))
+        mexErrMsgTxt("Input A must be n_x by n_x by N.");
+    real_t *A = mxGetSingles(prhs[12]);
+    if (mex_assert_3d_array_dimensions(prhs[13], N_U, N_X, N))
+        mexErrMsgTxt("Input B must be n_u by n_x by N.");
+    real_t *B = mxGetSingles(prhs[13]);
+    if (mex_assert_2d_array_dimensions(prhs[14], N_X, N))
+        mexErrMsgTxt("Input d must be n_x by N.");
+    real_t *d = mxGetSingles(prhs[14]);
 
     if (!initialized) {
         mmc_model_set_parameters(R, Rc, L, Lc, C, Ts, n_sm);
         mmc_model_get_init(N, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
-        // initialized = 1;
+        initialized = 1;
     }
     mmc_model_get(N, CAST_CONST_2D_VLA(x, N_X), CAST_CONST_2D_VLA(u, N_U), vf, Vdc, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
 }

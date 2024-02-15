@@ -9,8 +9,8 @@
 #include "SdqpLmpcMmc.h"
 #include "Types.h"
 
-#define NRHS 17
-#define NLHS 2
+#define NRHS 19
+#define NLHS 0
 
 static int initialized = 0;
 
@@ -76,17 +76,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         mexErrMsgTxt("Input x0 must have n_x elements.");
     real_t *x0 = mxGetSingles(prhs[16]);
 
-    mwSize x_dims[] = {(mwSize)n_x, (mwSize)N};
-    plhs[0] = mxCreateNumericArray(2, x_dims, mxSINGLE_CLASS, mxREAL);
-    real_t *x = mxGetSingles(plhs[0]);
-
-    mwSize u_dims[] = {(mwSize)n_u, (mwSize)N};
-    plhs[1] = mxCreateNumericArray(2, u_dims, mxSINGLE_CLASS, mxREAL);
-    real_t *u = mxGetSingles(plhs[1]);
+    if (mex_assert_2d_array_dimensions(prhs[17], n_x, N))
+        mexErrMsgTxt("Input x must be n_x by N.");
+    real_t *x = mxGetSingles(prhs[17]);
+    if (mex_assert_2d_array_dimensions(prhs[18], n_u, N))
+        mexErrMsgTxt("Input u must be n_u by N.");
+    real_t *u = mxGetSingles(prhs[18]);
 
     if (!initialized) {
         sdqp_lmpc_mmc_init(n_x, n_u, N, q1, q2, x_min, x_max, n_sm, insertion_index_deviation_allowance, u_min, u_max);
-        // initialized = 1;
+        initialized = 1;
     }
     int err = sdqp_lmpc_mmc_solve(n_x, n_u, N, x1_ref, x2_ref, 
             CAST_CONST_3D_VLA(A, n_x, n_x), CAST_CONST_3D_VLA(B, n_x, n_u), CAST_CONST_2D_VLA(d, n_x), x0, 
