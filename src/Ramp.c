@@ -90,6 +90,13 @@ static int compute_v(size_t n_H, const iterable_set_t* a_set, const indexed_vect
     return 0;
 }
 
+static size_t active_constraints(const iterable_set_t *a_set, size_t n_a) {
+    size_t active_b_constraints = iterable_set_partition(a_set);
+    size_t inactive_a_constraints = iterable_set_size(a_set) - active_b_constraints;
+    size_t active_a_constraints = n_a - inactive_a_constraints;
+    return active_a_constraints + active_b_constraints;
+}
+
 // Returns n_H if none found
 static inline size_t rank_2_update_removal_index(size_t n_H, const iterable_set_t* a_set, const indexed_vectors_t *invq, size_t i, const real_t y[n_H]) {
     real_t max = 0.0;
@@ -138,7 +145,7 @@ static int algorithm1(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vec
                 break;
             }
 
-            if (iterable_set_size(a_set) == n_a) {
+            if (active_constraints(a_set, n_a) == n_a) {
                 size_t index2 = rank_2_update_removal_index(n_H, a_set, invq, index, y);
                 if (index2 == n_H) {
                     return RAMP_ERROR_RANK_2_UPDATE;

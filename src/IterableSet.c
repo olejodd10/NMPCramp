@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-void iterable_set_init(iterable_set_t* set, size_t capacity) {
+void iterable_set_init(iterable_set_t* set, size_t capacity, size_t pivot) {
     set->capacity = capacity;
+    set->pivot = pivot;
     set->elements = (uint8_t*)malloc(capacity*sizeof(uint8_t));
     set->next = (size_t*)malloc(capacity*sizeof(size_t));
     set->prev = (size_t*)malloc(capacity*sizeof(size_t));
@@ -14,6 +15,7 @@ void iterable_set_init(iterable_set_t* set, size_t capacity) {
     set->first = capacity;
     set->last = capacity;
     set->size = 0;
+    set->partition = 0;
 }
 
 void iterable_set_destroy(iterable_set_t* set) {
@@ -29,6 +31,7 @@ void iterable_set_clear(iterable_set_t* set) {
     set->first = set->capacity;
     set->last = set->capacity;
     set->size = 0;
+    set->partition = 0;
 }
 
 void iterable_set_insert(iterable_set_t* set, size_t element) {
@@ -46,6 +49,9 @@ void iterable_set_insert(iterable_set_t* set, size_t element) {
     set->next[element] = set->capacity;
     set->last = element;
     set->size++;
+    if (element >= set->pivot) {
+        set->partition++;
+    }
 }
 
 void iterable_set_remove(iterable_set_t* set, size_t element) {
@@ -69,10 +75,17 @@ void iterable_set_remove(iterable_set_t* set, size_t element) {
         set->prev[set->next[element]] = set->prev[element];
     }
     set->size--;
+    if (element >= set->pivot) {
+        set->partition--;
+    }
 }
 
 size_t iterable_set_size(const iterable_set_t* set) {
     return set->size;
+}
+
+size_t iterable_set_partition(const iterable_set_t* set) {
+    return set->partition;
 }
 
 uint8_t iterable_set_contains(const iterable_set_t* set, size_t element) {

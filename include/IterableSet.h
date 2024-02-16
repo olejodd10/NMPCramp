@@ -7,6 +7,8 @@
 typedef struct {
     size_t capacity; // Maximum number of elements to be stored in set
     size_t size; // Current size of set
+    size_t pivot; // Index of first element that is counted as part of partition if in set
+    size_t partition; // Number of elements >=pivot in set
     uint8_t* elements; // Set membership array
     size_t* next; // Next element in iteration sequence
     size_t* prev; // Previous element in iteration sequence
@@ -19,8 +21,9 @@ typedef struct {
  *
  * @param[out] set Iterable set instance
  * @param[in] capacity Maximum number of elements to be stored in set
+ * @param[in] pivot Index of first element that is counted as part of partition if in set
  */
-void iterable_set_init(iterable_set_t* set, size_t capacity);
+void iterable_set_init(iterable_set_t* set, size_t capacity, size_t pivot);
 
 /**
  * @brief Destroy iterable set.
@@ -61,6 +64,14 @@ void iterable_set_remove(iterable_set_t* set, size_t element);
  * @return Number of elements currently in set
  */
 size_t iterable_set_size(const iterable_set_t* set);
+
+/**
+ * @brief Returns size of iterable set partition.
+ *
+ * @param[in] set Iterable set instance
+ * @return Number of elements currently in set partition
+ */
+size_t iterable_set_partition(const iterable_set_t* set);
 
 /**
  * @brief Checks whether element is in iterable set.
