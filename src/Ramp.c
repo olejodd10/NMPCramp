@@ -43,23 +43,35 @@ void ramp_disable_infeasibility_error(void) {
 }
 
 // Returns n_H if none found
-static inline size_t most_negative_index(size_t n_H, const iterable_set_t* a_set, real_t y[n_H]) {
+static inline size_t most_negative_index(size_t n_H, size_t n_a, const iterable_set_t* a_set, real_t y[n_H]) {
     real_t min = -RAMP_EPS;
     size_t index = n_H; // Invalid index, think of it as -1 but using an unsigned data type for efficiency
-    for (size_t i = iterable_set_first(a_set); i != iterable_set_end(a_set); i = iterable_set_next(a_set, i)) {
-        if (y[i] < min) {
+    for (size_t i = 0; i < n_a; ++i) {
+        if (y[i] < min && !iterable_set_contains(a_set, i)) {
             min = y[i];
             index = i;
-        }    
+        }
+    }
+    for (size_t i = n_a; i < n_H; ++i) {
+        if (y[i] < min && iterable_set_contains(a_set, i)) {
+            min = y[i];
+            index = i;
+        }
     }
     return index;
 }
 
 // Returns n_H if none found
-static inline size_t most_positive_index(size_t n_H, const iterable_set_t* a_set, real_t y[n_H]) {
+static inline size_t most_positive_index(size_t n_H, size_t n_a, const iterable_set_t* a_set, real_t y[n_H]) {
     real_t max = RAMP_EPS;
     size_t index = n_H; // Invalid index, think of it as -1 but using an unsigned data type for efficiency
-    for (size_t i = 0; i < n_H; ++i) {
+    for (size_t i = 0; i < n_a; ++i) {
+        if (y[i] > max && iterable_set_contains(a_set, i)) {
+            max = y[i];
+            index = i;
+        }    
+    }
+    for (size_t i = n_a; i < n_H; ++i) {
         if (y[i] > max && !iterable_set_contains(a_set, i)) {
             max = y[i];
             index = i;
@@ -98,11 +110,14 @@ static size_t active_constraints(const iterable_set_t *a_set, size_t n_a) {
 }
 
 // Returns n_H if none found
-static inline size_t rank_2_update_removal_index(size_t n_H, const iterable_set_t* a_set, const indexed_vectors_t *invq, size_t i, const real_t y[n_H]) {
+static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const iterable_set_t* a_set, const indexed_vectors_t *invq, size_t i, const real_t y[n_H]) {
     real_t max = 0.0;
     size_t index = n_H;
     m_get_column_M4(i, m_column_M4);
-    for (size_t j = iterable_set_first(a_set); j != iterable_set_end(a_set); j = iterable_set_next(a_set, j)) {
+    for (size_t j = 0; j < n_H; ++j) {
+        if (j < n_a && iterable_set_contains(a_set, j) || j >= n_a && !iterable_set_contains(a_set, j)) {
+            continue;
+        }
         real_t divisor = 0.0;
         for (size_t k = iterable_set_first(a_set); k != iterable_set_end(a_set); k = iterable_set_next(a_set, k)) {
             // Note that the order of indices for neg_g_invh_gt doesn't matter since it's symmetric
@@ -154,32 +169,52 @@ static int active_set_insert(size_t n_H, size_t index, iterable_set_t *a_set, in
 
 static int algorithm1(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
     while (1) {
-        size_t index = most_negative_index(n_H, a_set, y);
+        size_t index = most_negative_index(n_H, n_a, a_set, y);
         if (index != n_H) {
-            int err = active_set_remove(n_H, index, a_set, invq, y);
-            if (err) {
-                return err;
+            if (index < n_a) {
+                int err = active_set_insert(n_H, index, a_set, invq, y);
+                if (err) {
+                    return err;
+                }
+            } else {
+                int err = active_set_remove(n_H, index, a_set, invq, y);
+                if (err) {
+                    return err;
+                }
             }
         } else {
-            index = most_positive_index(n_H, a_set, y);
+            index = most_positive_index(n_H, n_a, a_set, y);
             if (index == n_H) {
                 break;
             }
 
             if (active_constraints(a_set, n_a) == n_a) {
-                size_t index2 = rank_2_update_removal_index(n_H, a_set, invq, index, y);
+                size_t index2 = rank_2_update_removal_index(n_H, n_a, a_set, invq, index, y);
                 if (index2 == n_H) {
                     return RAMP_ERROR_RANK_2_UPDATE;
-                } 
-                int err = active_set_remove(n_H, index2, a_set, invq, y);
-                if (err) {
-                    return err;
+                } else if (index2 < n_a) {
+                    int err = active_set_insert(n_H, index2, a_set, invq, y);
+                    if (err) {
+                        return err;
+                    }
+                } else {
+                    int err = active_set_remove(n_H, index2, a_set, invq, y);
+                    if (err) {
+                        return err;
+                    }
                 }
             }
 
-            int err = active_set_insert(n_H, index, a_set, invq, y);
-            if (err) {
-                return err;
+            if (index < n_a) {
+                int err = active_set_remove(n_H, index, a_set, invq, y);
+                if (err) {
+                    return err;
+                }
+            } else {
+                int err = active_set_insert(n_H, index, a_set, invq, y);
+                if (err) {
+                    return err;
+                }
             }
         }
     }
