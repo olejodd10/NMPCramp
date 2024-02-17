@@ -127,18 +127,39 @@ static inline void update_y(size_t n_H, size_t index, const real_t v[n_H], real_
     linalg_vector_add_scaled(n_H, y, v, y[index], y);
 }
 
+static int active_set_remove(size_t n_H, size_t index, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
+    int err = compute_v(n_H, a_set, invq, index, 1.0, m_v);
+    if (err) {
+        return err;
+    }
+    iterable_set_remove(a_set, index);
+    indexed_vectors_remove(invq, index);
+    update_y(n_H, index, m_v, y);
+    update_invq(n_H, index, a_set, m_v, invq);
+    return 0;
+}
+
+static int active_set_insert(size_t n_H, size_t index, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
+    int err = compute_v(n_H, a_set, invq, index, -1.0, m_v);
+    if (err) {
+        return err;
+    }
+    update_y(n_H, index, m_v, y);
+    update_invq(n_H, index, a_set, m_v, invq);
+    iterable_set_insert(a_set, index);
+    indexed_vectors_insert(invq, index, m_v);
+    indexed_vectors_get_mut(invq, index)[index] += 1.0; // Pretend there was a unit vector in the column to start with
+    return 0;
+}
+
 static int algorithm1(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
     while (1) {
         size_t index = most_negative_index(n_H, a_set, y);
         if (index != n_H) {
-            int err = compute_v(n_H, a_set, invq, index, 1.0, m_v);
+            int err = active_set_remove(n_H, index, a_set, invq, y);
             if (err) {
                 return err;
             }
-            iterable_set_remove(a_set, index);
-            indexed_vectors_remove(invq, index);
-            update_y(n_H, index, m_v, y);
-            update_invq(n_H, index, a_set, m_v, invq);
         } else {
             index = most_positive_index(n_H, a_set, y);
             if (index == n_H) {
@@ -149,27 +170,17 @@ static int algorithm1(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vec
                 size_t index2 = rank_2_update_removal_index(n_H, a_set, invq, index, y);
                 if (index2 == n_H) {
                     return RAMP_ERROR_RANK_2_UPDATE;
-                } else {
-                    int err = compute_v(n_H, a_set, invq, index2, 1.0, m_v);
-                    if (err) {
-                        return err;
-                    }
-                    iterable_set_remove(a_set, index2);
-                    indexed_vectors_remove(invq, index2);
-                    update_y(n_H, index2, m_v, y);
-                    update_invq(n_H, index2, a_set, m_v, invq);
+                } 
+                int err = active_set_remove(n_H, index2, a_set, invq, y);
+                if (err) {
+                    return err;
                 }
             }
 
-            int err = compute_v(n_H, a_set, invq, index, -1.0, m_v);
+            int err = active_set_insert(n_H, index, a_set, invq, y);
             if (err) {
                 return err;
             }
-            update_y(n_H, index, m_v, y);
-            update_invq(n_H, index, a_set, m_v, invq);
-            iterable_set_insert(a_set, index);
-            indexed_vectors_insert(invq, index, m_v);
-            indexed_vectors_get_mut(invq, index)[index] += 1.0; // Pretend there was a unit vector in the column to start with
         }
     }
     return 0;
