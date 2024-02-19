@@ -428,7 +428,7 @@ void sdqp_lmpc_constant_init(
     m_u_min = (real_t*)u_min;
     m_u_max = (real_t*)u_max;
 
-    indexed_vectors_init(&m_invq, m_n_a, m_n_H, m_n_H);
+    indexed_vectors_init(&m_invq, 2*m_n_a, m_n_H, m_n_H);
     iterable_set_init(&m_a_set, m_n_H, m_n_a);
     m_y = (real_t*)malloc(sizeof(real_t)*m_n_H);
 
