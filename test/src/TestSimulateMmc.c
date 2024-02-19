@@ -61,7 +61,7 @@ static const real_t X_MIN[N_X] = {Iv_0_min, Icir_0_min, Vsigma_u_min, Vsigma_l_m
 
 static const real_t X_MAX[N_X] = {Iv_0_max, Icir_0_max, Vsigma_u_max, Vsigma_l_max};
 
-#define INSERTION_INDEX_DEVIATION_ALLOWANCE 18.0
+#define INSERTION_INDEX_DEVIATION_ALLOWANCE 2.0
 
 #define u1_min 0.0
 #define u2_min 0.0

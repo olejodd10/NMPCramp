@@ -46,7 +46,7 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
     
     X_MAX = [Iv_0_max, Icir_0_max, Vsigma_u_max, Vsigma_l_max];
     
-    INSERTION_INDEX_DEVIATION_ALLOWANCE = single(18.0);
+    INSERTION_INDEX_DEVIATION_ALLOWANCE = single(2.0);
     
     u1_min = single(0.0);
     u2_min = single(0.0);
