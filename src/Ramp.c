@@ -15,6 +15,8 @@ static uint8_t infeasiblity_error_enabled = 0;
 static real_t infeasibility_error_min;
 static real_t infeasibility_error_max;
 
+static size_t m_max_iterations = 1000;
+
 static real_t *m_column_M4;
 static real_t *m_v;
 
@@ -40,6 +42,10 @@ void ramp_enable_infeasibility_error(real_t min, real_t max) {
 
 void ramp_disable_infeasibility_error(void) {
     infeasiblity_error_enabled = 0;
+}
+
+void ramp_set_max_iterations(size_t max_iterations) {
+    m_max_iterations = max_iterations;
 }
 
 // Returns n_H if none found
@@ -182,7 +188,7 @@ static int active_set_insert(size_t n_H, size_t index, iterable_set_t *a_set, in
 }
 
 static int algorithm1(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
-    while (1) {
+    for (size_t i = 0; i < m_max_iterations; ++i) {
         size_t index = most_incorrect_active_constraint(n_H, n_a, a_set, y);
         if (index != n_H) {
             if (index < n_a) {
@@ -199,7 +205,7 @@ static int algorithm1(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vec
         } else {
             index = most_incorrect_inactive_constraint(n_H, n_a, a_set, y);
             if (index == n_H) {
-                break;
+                return 0;
             }
 
             if (active_constraints(a_set, n_a) == n_a) {
@@ -232,7 +238,7 @@ static int algorithm1(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vec
             }
         }
     }
-    return 0;
+    return RAMP_ERROR_MAX_ITERATIONS_EXCEEDED;
 }
 
 int ramp_solve(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
