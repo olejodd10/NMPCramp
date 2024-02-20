@@ -1,13 +1,13 @@
-add_test(NAME TestMexSimulateMmc_Horizons_1_2_5_10 COMMAND matlab -nodisplay -r 
-    "addpath(\"${CMAKE_BINARY_DIR}/mex\"), \
-     addpath(\"${CMAKE_CURRENT_SOURCE_DIR}\"), \
-     TestMexSimulateMmc(\"${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc\", 1, 100), \
+add_test(NAME TestMexSimulateMmc_Horizons_1_2_5_10 COMMAND matlab -nodesktop -nosplash -wait -r 
+    "addpath('${CMAKE_BINARY_DIR}/mex'), \
+     addpath('${CMAKE_CURRENT_SOURCE_DIR}'), \
+     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 1, 100), \
      clear mex, \
-     TestMexSimulateMmc(\"${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc\", 2, 100), \
+     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 2, 100), \
      clear mex, \
-     TestMexSimulateMmc(\"${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc\", 5, 100), \
+     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 5, 100), \
      clear mex, \
-     TestMexSimulateMmc(\"${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc\", 10, 100), \
+     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 10, 100), \
      exit")
 
 set(TEST_MEX_SIMULATE_MMC_COMPARISON_LIMIT 6e-3)
