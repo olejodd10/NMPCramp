@@ -12,7 +12,7 @@ void indexed_vectors_init(indexed_vectors_t *vecs, size_t capacity, size_t lengt
     vecs->max_index = max_index;
 	vecs->where_is = (size_t*)malloc(max_index*sizeof(size_t)); 
 	vecs->whats_here = (size_t*)malloc(capacity*sizeof(size_t)); 
-    vecs->values = (real_t*)malloc(capacity*length*sizeof(size_t));
+    vecs->values = (real_t*)malloc(capacity*length*sizeof(real_t));
     for (size_t i = 0; i < vecs->max_index; ++i) {
         vecs->where_is[i] = vecs->capacity; 
     }
