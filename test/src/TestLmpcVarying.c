@@ -19,7 +19,7 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
     size_t n_u = csv_parse_matrix_width(path);
     sprintf(path, "%s/C.csv", input_dir);
     size_t n_y = csv_parse_matrix_height(path);
-    sprintf(path, "%s/Lt.csv", input_dir);
+    sprintf(path, "%s/_Lt.csv", input_dir);
     size_t n_t = csv_parse_matrix_height(path);
 
     // Allocate memory for system matrices and vectors
@@ -103,7 +103,7 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
         printf("Error while parsing input vector y_max.\n");
         return 1;
     }
-    sprintf(path, "%s/Lt.csv", input_dir);
+    sprintf(path, "%s/_Lt.csv", input_dir);
     if (csv_parse_matrix(path, n_t, n_x, CAST_2D_VLA(Lt, n_x))) { 
         printf("Error while parsing input matrix Lt.\n");
         return 1;
