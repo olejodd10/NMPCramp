@@ -63,8 +63,8 @@ static void multiply_inv_eye_sub_Ahat_T_inplace(size_t n_x, size_t N, const real
     }
 }
 
-static void _get_column_M4(
-        size_t index, 
+static void get_column_M4a(
+        size_t local_index, 
 
         size_t n_x,
         size_t n_u,
@@ -72,9 +72,7 @@ static void _get_column_M4(
         size_t n_t,
         size_t N,
 
-        // size_t n_z,
         size_t n_M,
-        size_t n_H,
         size_t n_a,
 
         const real_t Q[n_x][n_x],
@@ -89,111 +87,130 @@ static void _get_column_M4(
 
         real_t *column_M4) 
 {
-    memset(column_M4, 0, sizeof(real_t)*n_H);
-    if (index < n_a) {
-        // Left part, n_H x n_z
+    // Top block/first n_a elements first
+    // Don't confuse MH2T P MH2 with MH2T P MH
 
-        // Top block/first n_a elements first
-        // Don't confuse MH2T P MH2 with MH2T P MH
+    // Get column of Bhat
+    memset(m_temp1, 0, sizeof(real_t)*n_M);
+    for (size_t i = 0; i < n_x; ++i) {
+        m_temp1[(local_index/n_u)*n_x+i] = B[local_index/n_u][i][local_index % n_u];
+    }
 
-        // Get column of Bhat
-        memset(m_temp1, 0, sizeof(real_t)*n_M);
-        for (size_t i = 0; i < n_x; ++i) {
-            m_temp1[(index/n_u)*n_x+i] = B[index/n_u][i][index % n_u];
+    // Multiply with (...)^-1
+    multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
+
+    // Multiply with Qhat
+    for (size_t i = 0; i < N-1; ++i) {
+        linalg_matrix_vector_product(n_x, n_x, Q, &m_temp1[i*n_x], &m_temp2[i*n_x]); // We only use the first n_M of m_temp2 in this case
+    }
+    linalg_matrix_vector_product(n_x, n_x, S, &m_temp1[(N-1)*n_x], &m_temp2[(N-1)*n_x]);
+
+    // Multiply with (...)^-T
+    multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp2, n_x));
+
+    // Multiply with Bhat_T, write result to first n_a elements of column_M4
+    for (size_t i = 0; i < N; ++i) {
+        for (size_t j = 0; j < n_x; ++j) {
+            linalg_vector_add_scaled(n_u, &column_M4[i*n_u], B[i][j], -m_temp2[i*n_x + j], &column_M4[i*n_u]); // Note the negation of the scaling factor
         }
+    }
 
-        // Multiply with (...)^-1
-        multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
-
-        // Multiply with Qhat
-        for (size_t i = 0; i < N-1; ++i) {
-            linalg_matrix_vector_product(n_x, n_x, Q, &m_temp1[i*n_x], &m_temp2[i*n_x]); // We only use the first n_M of m_temp2 in this case
-        }
-        linalg_matrix_vector_product(n_x, n_x, S, &m_temp1[(N-1)*n_x], &m_temp2[(N-1)*n_x]);
-
-        // Multiply with (...)^-T
-        multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp2, n_x));
-
-        // Multiply with Bhat_T, write result to first n_a elements of column_M4
-        for (size_t i = 0; i < N; ++i) {
-            for (size_t j = 0; j < n_x; ++j) {
-                linalg_vector_add_scaled(n_u, &column_M4[i*n_u], B[i][j], -m_temp2[i*n_x + j], &column_M4[i*n_u]); // Note the negation of the scaling factor
-            }
-        }
-
-        // Add (subtract) Rhat column
-        for (size_t i = 0; i < n_u; ++i) {
-            column_M4[(index/n_u)*n_u+i] -= R[i][index % n_u];
-        }
-
-        // Add I-element
-        // This is done equally for left and right part, see bottom of function
-
-        // Bottom block/last n_b elements
-        // Don't confuse -HbMH2 with -HbMH
-        // Note that m_temp1 already contains (...)^-1*Bhat(:,index), So we really just need to multiply with -Hb
-
-        // C and Lt0-blocks
-        for (size_t i = 0; i < N-1; ++i) {
-            for (size_t j = 0; j < n_y ; ++j) {
-                real_t temp = linalg_vector_inner_product(n_x, C[j], &m_temp1[i*n_x]);
-                column_M4[n_a + i*n_y + j] = temp; // Note the signs here!
-                column_M4[n_a + (i+N-1)*n_y + j] = -temp;
-            }
-        }
-        for (size_t i = 0; i < n_t; ++i) {
-            column_M4[n_a + 2*n_y*(N-1)+i] -= linalg_vector_inner_product(n_x, Lt[i], &m_temp1[(N-1)*n_x]); // Note the sign
-        }
-
-        // The I-block of -HbMH2. Note the double negation
-        column_M4[n_a + 2*n_y*(N-1) + n_t + index] += 1.0;
-
-    } else {
-        // Right part
-        size_t local_index = index - n_a;
-        
-        // Top block/first n_a elements first
-        // MH2T*HbT = [-BhatT*(...)^-T*Chat^T BhatT*(...)^-T*Chat^T BhatT*(...)^-T*Lt0^T -I]
-        // Get column from Chat_T, -Chat_T or Lt0_T (or -I) depending on which block we are in
-        if (local_index < 2*n_y*(N-1) + n_t) {
-            memset(m_temp1, 0, sizeof(real_t)*n_M);
-            if (local_index < n_y*(N-1)) {
-                // Can't memcpy because we need a negated column
-                // Luckily we had to memset m_temp1 to 0 anyways, so adding is no problem
-                linalg_vector_add_scaled(n_x, &m_temp1[(local_index/n_y)*n_x], C[local_index % n_y], -1.0, &m_temp1[(local_index/n_y)*n_x]);
-            } else if (local_index < 2*n_y*(N-1)) {
-                memcpy(&m_temp1[(local_index/n_y - (N-1))*n_x], C[local_index % n_y], sizeof(real_t)*n_x);
-            } else {
-                memcpy(&m_temp1[n_x*(N-1)], Lt[local_index - 2*n_y*(N-1)], sizeof(real_t)*n_x);
-            }
-            //Multiply with Bhat^T*(...)^-T and store result in column_M4
-            multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
-            for (size_t i = 0; i < N; ++i) {
-                for (size_t j = 0; j < n_x; ++j) {
-                    linalg_vector_add_scaled(n_u, &column_M4[i*n_u], B[i][j], m_temp1[i*n_x + j], &column_M4[i*n_u]);
-                }
-            }
-        } else {
-            column_M4[local_index - (2*n_y*(N-1) + n_t)] = 1.0; // Note the sign. The value there is zero, but we set it instead of adding because whatever
-        }
-
-        // Bottom block/last n_b elements
-        // Add I-element
-        // This is done equally for left and right part, see bottom of function
+    // Add (subtract) Rhat column
+    for (size_t i = 0; i < n_u; ++i) {
+        column_M4[(local_index/n_u)*n_u+i] -= R[i][local_index % n_u];
     }
 
     // Add element on the diagonal, stemming from I
-    column_M4[index] += 1.0;
+    column_M4[local_index] += 1.0;
+
+    // Bottom block/last n_b elements
+    // Don't confuse -HbMH2 with -HbMH
+    // Note that m_temp1 already contains (...)^-1*Bhat(:,index), So we really just need to multiply with -Hb
+
+    // C and Lt0-blocks
+    for (size_t i = 0; i < N-1; ++i) {
+        for (size_t j = 0; j < n_y ; ++j) {
+            real_t temp = linalg_vector_inner_product(n_x, C[j], &m_temp1[i*n_x]);
+            column_M4[n_a + i*n_y + j] = temp; // Note the signs here!
+            column_M4[n_a + (i+N-1)*n_y + j] = -temp;
+        }
+    }
+    for (size_t i = 0; i < n_t; ++i) {
+        column_M4[n_a + 2*n_y*(N-1)+i] -= linalg_vector_inner_product(n_x, Lt[i], &m_temp1[(N-1)*n_x]); // Note the sign
+    }
+
+    // The I-block of -HbMH2. Note the double negation
+    column_M4[n_a + 2*n_y*(N-1) + n_t + local_index] += 1.0;
+}
+
+static void get_column_M4b(
+        size_t local_index, 
+
+        size_t n_x,
+        size_t n_u,
+        size_t n_y,
+        size_t n_t,
+        size_t N,
+
+        size_t n_M,
+        size_t n_a,
+
+        const real_t A[N][n_x][n_x],
+        const real_t B[N][n_x][n_u],
+        const real_t C[n_y][n_x],
+
+        const real_t Lt[n_t][n_x],
+
+        real_t *column_M4) 
+{
+    // Top block/first n_a elements first
+    // MH2T*HbT = [-BhatT*(...)^-T*Chat^T BhatT*(...)^-T*Chat^T BhatT*(...)^-T*Lt0^T -I]
+    // Get column from Chat_T, -Chat_T or Lt0_T (or -I) depending on which block we are in
+    if (local_index < 2*n_y*(N-1) + n_t) {
+        memset(m_temp1, 0, sizeof(real_t)*n_M);
+        if (local_index < n_y*(N-1)) {
+            // Can't memcpy because we need a negated column
+            // Luckily we had to memset m_temp1 to 0 anyways, so adding is no problem
+            linalg_vector_add_scaled(n_x, &m_temp1[(local_index/n_y)*n_x], C[local_index % n_y], -1.0, &m_temp1[(local_index/n_y)*n_x]);
+        } else if (local_index < 2*n_y*(N-1)) {
+            memcpy(&m_temp1[(local_index/n_y - (N-1))*n_x], C[local_index % n_y], sizeof(real_t)*n_x);
+        } else {
+            memcpy(&m_temp1[n_x*(N-1)], Lt[local_index - 2*n_y*(N-1)], sizeof(real_t)*n_x);
+        }
+        //Multiply with Bhat^T*(...)^-T and store result in column_M4
+        multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
+        for (size_t i = 0; i < N; ++i) {
+            for (size_t j = 0; j < n_x; ++j) {
+                linalg_vector_add_scaled(n_u, &column_M4[i*n_u], B[i][j], m_temp1[i*n_x + j], &column_M4[i*n_u]);
+            }
+        }
+    } else {
+        column_M4[local_index - (2*n_y*(N-1) + n_t)] = 1.0; // Note the sign. The value there is zero, but we set it instead of adding because whatever
+    }
+
+    // Bottom block/last n_b elements
+    // Add I-element
+    column_M4[n_a + local_index] += 1.0;
 }
 
 static void get_column_M4(size_t index, real_t *column_M4) {
-    _get_column_M4(index,
-        m_n_x, m_n_u, m_n_y, m_n_t, m_N,
-        m_n_M, m_n_H, m_n_a,
-        CAST_CONST_2D_VLA(m_Q, m_n_x), CAST_CONST_2D_VLA(m_S, m_n_x), CAST_CONST_2D_VLA(m_R, m_n_x),
-        CAST_CONST_3D_VLA(m_A, m_n_x, m_n_x), CAST_CONST_3D_VLA(m_B, m_n_x, m_n_u), CAST_CONST_2D_VLA(m_C, m_n_x),
-        CAST_CONST_2D_VLA(m_Lt, m_n_x),
-        column_M4);
+    memset(column_M4, 0, sizeof(real_t)*m_n_H);
+    if (index < m_n_a) {
+        get_column_M4a(index,
+            m_n_x, m_n_u, m_n_y, m_n_t, m_N,
+            m_n_M, m_n_a,
+            CAST_CONST_2D_VLA(m_Q, m_n_x), CAST_CONST_2D_VLA(m_S, m_n_x), CAST_CONST_2D_VLA(m_R, m_n_x),
+            CAST_CONST_3D_VLA(m_A, m_n_x, m_n_x), CAST_CONST_3D_VLA(m_B, m_n_x, m_n_u), CAST_CONST_2D_VLA(m_C, m_n_x),
+            CAST_CONST_2D_VLA(m_Lt, m_n_x),
+            column_M4);
+    } else {
+        get_column_M4b(index - m_n_a,
+            m_n_x, m_n_u, m_n_y, m_n_t, m_N,
+            m_n_M, m_n_a,
+            CAST_CONST_3D_VLA(m_A, m_n_x, m_n_x), CAST_CONST_3D_VLA(m_B, m_n_x, m_n_u), CAST_CONST_2D_VLA(m_C, m_n_x),
+            CAST_CONST_2D_VLA(m_Lt, m_n_x),
+            column_M4);
+    }
 }
 
 static void initialize_y(
