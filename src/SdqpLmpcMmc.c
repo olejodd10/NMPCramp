@@ -57,16 +57,14 @@ static void multiply_inv_eye_sub_Ahat_T_inplace(size_t n_x, size_t N, const real
     }
 }
 
-static void _get_column_M4(
-        size_t index, 
+static void get_column_M4a(
+        size_t local_index, 
 
         size_t n_x,
         size_t n_u,
         size_t N,
 
-        // size_t n_z,
         size_t n_M,
-        size_t n_H,
         size_t n_a,
 
         real_t q1,
@@ -77,109 +75,122 @@ static void _get_column_M4(
 
         real_t *column_M4) 
 {
-    memset(column_M4, 0, sizeof(real_t)*n_H);
-    if (index < n_a) {
-        // Left part, n_H x n_z
+    // Top block/first n_a elements first
+    // Don't confuse MH2T P MH2 with MH2T P MH
 
-        // Top block/first n_a elements first
-        // Don't confuse MH2T P MH2 with MH2T P MH
-
-        // Get column of Bhat
-        memset(m_temp1, 0, sizeof(real_t)*n_M);
-        for (size_t i = 0; i < n_x; ++i) {
-            m_temp1[(index/n_u)*n_x+i] = B[index/n_u][i][index % n_u];
-        }
-
-        // Multiply with (...)^-1
-        multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
-
-        // Multiply with Qhat
-        for (size_t i = 0; i < N; ++i) {
-            m_temp2[i*n_x + 0] = q1*m_temp1[i*n_x + 0];
-            m_temp2[i*n_x + 1] = q2*m_temp1[i*n_x + 1];
-            m_temp2[i*n_x + 2] = 0.0;
-            m_temp2[i*n_x + 3] = 0.0;
-        }
-
-        // Multiply with (...)^-T
-        multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp2, n_x));
-
-        // Multiply with Bhat_T, write result to first n_a elements of column_M4
-        for (size_t i = 0; i < N; ++i) {
-            for (size_t j = 0; j < n_x; ++j) {
-                linalg_vector_add_scaled(n_u, &column_M4[i*n_u], B[i][j], -m_temp2[i*n_x + j], &column_M4[i*n_u]); // Note the negation of the scaling factor
-            }
-        }
-
-        // Add (subtract) Rhat column
-        // R is zero for MMC
-
-        // Add I-element
-        // This is done equally for left and right part, see bottom of function
-
-        // Bottom block/last n_b elements
-        // Don't confuse -HbMH2 with -HbMH
-        // Note that m_temp1 already contains (...)^-1*Bhat(:,index), So we really just need to multiply with -Hb
-
-        // Top two blocks
-        for (size_t i = 0; i < n_M; ++i) {
-            column_M4[n_a + i] = m_temp1[i]; // Note sign
-            column_M4[n_a + n_M + i] = -m_temp1[i]; // Note sign
-        }
-
-        // M2 blocks. Remember the negation
-        column_M4[n_a + 2*n_M + index/n_u] = 1.0; // Note the signs here!
-        column_M4[n_a + 2*n_M + N + index/n_u] = -1.0;
-
-        // The I-block of -HbMH2. Note the double negation
-        column_M4[n_a + 2*(n_M+N) + index] += 1.0;
-
-    } else {
-        // Right part
-        size_t local_index = index - n_a;
-        
-        // Top block/first n_a elements first
-        if (local_index < 2*n_M) {
-            memset(m_temp1, 0, sizeof(real_t)*n_M);
-            if (local_index < n_M) {
-                m_temp1[local_index] = -1.0;
-            } else {
-                m_temp1[local_index - n_M] = 1.0;
-            } 
-            multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
-            for (size_t i = 0; i < N; ++i) {
-                for (size_t j = 0; j < n_x; ++j) {
-                    linalg_vector_add_scaled(n_u, &column_M4[i*n_u], B[i][j], m_temp1[i*n_x + j], &column_M4[i*n_u]);
-                }
-            }
-        } else if (local_index < 2*n_M + N) {
-            for (size_t i = 0; i < n_u; ++i) {
-                column_M4[(local_index - 2*n_M)*n_u + i] = -1.0;
-            }
-        } else if (local_index < 2*(n_M + N)) {
-            for (size_t i = 0; i < n_u; ++i) {
-                column_M4[(local_index - 2*n_M - N)*n_u + i] = 1.0;
-            }
-        } else {
-            column_M4[local_index - 2*(n_M + N)] = -1.0;
-        }
-
-        // Bottom block/last n_b elements
-        // Add I-element
-        // This is done equally for left and right part, see bottom of function
+    // Get column of Bhat
+    memset(m_temp1, 0, sizeof(real_t)*n_M);
+    for (size_t i = 0; i < n_x; ++i) {
+        m_temp1[(local_index/n_u)*n_x+i] = B[local_index/n_u][i][local_index % n_u];
     }
 
+    // Multiply with (...)^-1
+    multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
+
+    // Multiply with Qhat
+    for (size_t i = 0; i < N; ++i) {
+        m_temp2[i*n_x + 0] = q1*m_temp1[i*n_x + 0];
+        m_temp2[i*n_x + 1] = q2*m_temp1[i*n_x + 1];
+        m_temp2[i*n_x + 2] = 0.0;
+        m_temp2[i*n_x + 3] = 0.0;
+    }
+
+    // Multiply with (...)^-T
+    multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp2, n_x));
+
+    // Multiply with Bhat_T, write result to first n_a elements of column_M4
+    for (size_t i = 0; i < N; ++i) {
+        for (size_t j = 0; j < n_x; ++j) {
+            linalg_vector_add_scaled(n_u, &column_M4[i*n_u], B[i][j], -m_temp2[i*n_x + j], &column_M4[i*n_u]); // Note the negation of the scaling factor
+        }
+    }
+
+    // Add (subtract) Rhat column
+    // R is zero for MMC
+
     // Add element on the diagonal, stemming from I
-    column_M4[index] += 1.0;
+    column_M4[local_index] += 1.0;
+
+    // Bottom block/last n_b elements
+    // Don't confuse -HbMH2 with -HbMH
+    // Note that m_temp1 already contains (...)^-1*Bhat(:,index), So we really just need to multiply with -Hb
+
+    // Top two blocks
+    for (size_t i = 0; i < n_M; ++i) {
+        column_M4[n_a + i] = m_temp1[i]; // Note sign
+        column_M4[n_a + n_M + i] = -m_temp1[i]; // Note sign
+    }
+
+    // M2 blocks. Remember the negation
+    column_M4[n_a + 2*n_M + local_index/n_u] = 1.0; // Note the signs here!
+    column_M4[n_a + 2*n_M + N + local_index/n_u] = -1.0;
+
+    // The I-block of -HbMH2. Note the double negation
+    column_M4[n_a + 2*(n_M+N) + local_index] += 1.0;
+}
+
+static void get_column_M4b(
+        size_t local_index, 
+
+        size_t n_x,
+        size_t n_u,
+        size_t N,
+
+        size_t n_M,
+        size_t n_a,
+
+        const real_t A[N][n_x][n_x],
+        const real_t B[N][n_x][n_u],
+
+        real_t *column_M4) 
+{
+    // Top block/first n_a elements first
+    if (local_index < 2*n_M) {
+        memset(m_temp1, 0, sizeof(real_t)*n_M);
+        if (local_index < n_M) {
+            m_temp1[local_index] = -1.0;
+        } else {
+            m_temp1[local_index - n_M] = 1.0;
+        } 
+        multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
+        for (size_t i = 0; i < N; ++i) {
+            for (size_t j = 0; j < n_x; ++j) {
+                linalg_vector_add_scaled(n_u, &column_M4[i*n_u], B[i][j], m_temp1[i*n_x + j], &column_M4[i*n_u]);
+            }
+        }
+    } else if (local_index < 2*n_M + N) {
+        for (size_t i = 0; i < n_u; ++i) {
+            column_M4[(local_index - 2*n_M)*n_u + i] = -1.0;
+        }
+    } else if (local_index < 2*(n_M + N)) {
+        for (size_t i = 0; i < n_u; ++i) {
+            column_M4[(local_index - 2*n_M - N)*n_u + i] = 1.0;
+        }
+    } else {
+        column_M4[local_index - 2*(n_M + N)] = -1.0;
+    }
+
+    // Bottom block/last n_b elements
+    // Add I-element
+    column_M4[n_a + local_index] += 1.0;
 }
 
 static void get_column_M4(size_t index, real_t *column_M4) {
-    _get_column_M4(index,
-        m_n_x, m_n_u, m_N,
-        m_n_M, m_n_H, m_n_a,
-        m_q1, m_q2,
-        CAST_CONST_3D_VLA(m_A, m_n_x, m_n_x), CAST_CONST_3D_VLA(m_B, m_n_x, m_n_u),
-        column_M4);
+    memset(column_M4, 0, sizeof(real_t)*m_n_H);
+    if (index < m_n_a) {
+        get_column_M4a(index,
+            m_n_x, m_n_u, m_N,
+            m_n_M, m_n_a,
+            m_q1, m_q2,
+            CAST_CONST_3D_VLA(m_A, m_n_x, m_n_x), CAST_CONST_3D_VLA(m_B, m_n_x, m_n_u),
+            column_M4);
+    } else {
+        get_column_M4b(index - m_n_a,
+            m_n_x, m_n_u, m_N,
+            m_n_M, m_n_a,
+            CAST_CONST_3D_VLA(m_A, m_n_x, m_n_x), CAST_CONST_3D_VLA(m_B, m_n_x, m_n_u),
+            column_M4);
+    }
 }
 
 static void initialize_y(
