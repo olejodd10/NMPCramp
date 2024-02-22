@@ -10,7 +10,7 @@
 #include "Types.h"
 
 #define NRHS 19
-#define NLHS 0
+#define NLHS 2
 
 static int initialized = 0;
 
@@ -78,10 +78,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     if (mex_assert_2d_array_dimensions(prhs[17], n_x, N))
         mexErrMsgTxt("Input x must be n_x by N.");
-    real_t *x = mxGetSingles(prhs[17]);
+    plhs[0] = mxDuplicateArray(prhs[17]);
+    real_t *x = mxGetSingles(plhs[0]);
     if (mex_assert_2d_array_dimensions(prhs[18], n_u, N))
         mexErrMsgTxt("Input u must be n_u by N.");
-    real_t *u = mxGetSingles(prhs[18]);
+    plhs[1] = mxDuplicateArray(prhs[18]);
+    real_t *u = mxGetSingles(plhs[1]);
+
 
     if (!initialized) {
         sdqp_lmpc_mmc_init(n_x, n_u, N, q1, q2, x_min, x_max, n_sm, insertion_index_deviation_allowance, u_min, u_max);

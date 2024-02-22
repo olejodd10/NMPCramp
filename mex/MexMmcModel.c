@@ -10,7 +10,7 @@
 #include "Types.h"
 
 #define NRHS 15
-#define NLHS 0
+#define NLHS 3
 
 static int initialized = 0;
 
@@ -52,13 +52,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     if (mex_assert_3d_array_dimensions(prhs[12], N_X, N_X, N))
         mexErrMsgTxt("Input A must be n_x by n_x by N.");
-    real_t *A = mxGetSingles(prhs[12]);
+    plhs[0] = mxDuplicateArray(prhs[12]);
+    real_t *A = mxGetSingles(plhs[0]);
     if (mex_assert_3d_array_dimensions(prhs[13], N_U, N_X, N))
         mexErrMsgTxt("Input B must be n_u by n_x by N.");
-    real_t *B = mxGetSingles(prhs[13]);
+    plhs[1] = mxDuplicateArray(prhs[13]);
+    real_t *B = mxGetSingles(plhs[1]);
     if (mex_assert_2d_array_dimensions(prhs[14], N_X, N))
         mexErrMsgTxt("Input d must be n_x by N.");
-    real_t *d = mxGetSingles(prhs[14]);
+    plhs[2] = mxDuplicateArray(prhs[14]);
+    real_t *d = mxGetSingles(plhs[2]);
 
     if (!initialized) {
         mmc_model_set_parameters(R, Rc, L, Lc, C, Ts, n_sm);

@@ -101,10 +101,10 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
         Iv_ref = Iv_ref_amp*sin(PHASE_0 + 2*pi*FREQ*Ts*(i-1 + (0:(N-1))));
 
         % Get linearized discrete model
-        MexMmcModel(R, Rc, L, Lc, C, Ts, N_SM, single(N), x, u, vf, Vdc, A, B, d);
+        [A,B,d] = MexMmcModel(R, Rc, L, Lc, C, Ts, N_SM, single(N), x, u, vf, Vdc, A, B, d);
 
         % Solve QP
-        MexSdqpLmpcMmc(N_X, N_U, single(N), q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX, Iv_ref, Icir_ref, A, B, d, xout(i,:), x, u);
+        [x,u] = MexSdqpLmpcMmc(N_X, N_U, single(N), q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX, Iv_ref, Icir_ref, A, B, d, xout(i,:), x, u);
 
         % Simulate using linearized discrete model
         A0 = squeeze(A(:,:,1))';
