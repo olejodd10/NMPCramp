@@ -475,12 +475,9 @@ int sdqp_lmpc_constant_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n
         m_y[i] -= m_temp3[i];
     }
     int err = ramp_solve(m_n_H, m_n_a, &m_a_set, &m_invq, m_y);
-    if (err) {
-        return err;
-    }
     compute_x_u(n_x, n_u, N, m_n_H, 
             CAST_CONST_2D_VLA(m_A, n_x), CAST_CONST_2D_VLA(m_B, n_u), 
             x0, m_u_max, &m_a_set, m_y, 
             x, u);
-    return 0;
+    return err;
 }

@@ -392,12 +392,9 @@ int sdqp_lmpc_mmc_solve(size_t n_x, size_t n_u, size_t N, const real_t x1_ref[N]
         m_x_min, m_x_max, m_n_sm, m_insertion_index_deviation_allowance, m_u_min, m_u_max, 
         x0, m_y);
     int err = ramp_solve(m_n_H, m_n_a, &m_a_set, &m_invq, m_y);
-    if (err) {
-        return err;
-    }
     compute_x_u(n_x, n_u, N, m_n_H, 
             A, B, d,
             x0, m_u_max, &m_a_set, m_y, 
             x, u);
-    return 0;
+    return err;
 }

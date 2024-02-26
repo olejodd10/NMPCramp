@@ -427,12 +427,9 @@ int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][
 		m_y_min, m_y_max, CAST_CONST_2D_VLA(m_Lt, n_x), m_lt, m_u_min, m_u_max, 
         x0, m_y);
     int err = ramp_solve(m_n_H, m_n_a, &m_a_set, &m_invq, m_y);
-    if (err) {
-        return err;
-    }
     compute_x_u(n_x, n_u, N, m_n_H, 
             A, B, d,
             x0, m_u_max, &m_a_set, m_y, 
             x, u);
-    return 0;
+    return err;
 }
