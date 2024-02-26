@@ -89,7 +89,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     if (!initialized) {
         sdqp_lmpc_mmc_init(n_x, n_u, N, q1, q2, x_min, x_max, n_sm, insertion_index_deviation_allowance, u_min, u_max);
-        initialized = 1;
+        // initialized = 1;
     }
     int err = sdqp_lmpc_mmc_solve(n_x, n_u, N, x1_ref, x2_ref, 
             CAST_CONST_3D_VLA(A, n_x, n_x), CAST_CONST_3D_VLA(B, n_x, n_u), CAST_CONST_2D_VLA(d, n_x), x0, 
