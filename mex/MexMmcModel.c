@@ -64,8 +64,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     real_t *d = mxGetSingles(plhs[2]);
 
     if (!initialized) {
-        mmc_model_set_parameters(R, Rc, L, Lc, C, Ts, n_sm);
-        mmc_model_get_init(N, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
+        mmc_model_get_init(R, Rc, L, Lc, C, Ts, n_sm, N, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
         initialized = 1;
     }
     mmc_model_get(N, CAST_CONST_2D_VLA(x, N_X), CAST_CONST_2D_VLA(u, N_U), vf, Vdc, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));

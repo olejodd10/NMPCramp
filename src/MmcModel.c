@@ -25,7 +25,7 @@ static real_t B1_31 = 0.0;
 static real_t d_0 = 0.0;
 static real_t d_1 = 0.0;
 
-void mmc_model_set_parameters(real_t R, real_t Rc, real_t L, real_t Lc, real_t C, real_t Ts, real_t n_sm) {
+void mmc_model_get_init(real_t R, real_t Rc, real_t L, real_t Lc, real_t C, real_t Ts, real_t n_sm, size_t N, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]) {
     A_00 = -Ts*(R+2.0*Rc)/(L+2.0*Lc);
     A_11 = -Ts*R/L;
 
@@ -41,10 +41,8 @@ void mmc_model_set_parameters(real_t R, real_t Rc, real_t L, real_t Lc, real_t C
 
     d_0 = 2.0*Ts/(L+2.0*Lc);
     d_1 = Ts/(2.0*L);
-}
 
-// Sets matrices to zero in unused elements, and initializes elements that rely on parameters but not trajectories
-void mmc_model_get_init(size_t N, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]) {
+    // Sets matrices to zero in unused elements, and initializes elements that rely on parameters but not trajectories
     memset(A, 0, sizeof(real_t)*N*N_X*N_X);
     memset(B, 0, sizeof(real_t)*N*N_X*N_U);
     memset(d, 0, sizeof(real_t)*N*N_X);

@@ -98,8 +98,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
     real_t *uout = (real_t*)malloc(sizeof(real_t)*simulation_timesteps*N_U);
 
     // Initialize model
-    mmc_model_set_parameters(R, Rc, L, Lc, C, Ts, N_SM);
-    mmc_model_get_init(N, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
+    mmc_model_get_init(R, Rc, L, Lc, C, Ts, N_SM, N, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
 
     // Initialize solver
     sdqp_lmpc_mmc_init(N_X, N_U, N, q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX);
