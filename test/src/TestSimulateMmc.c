@@ -25,9 +25,10 @@
 #define N_SM 18.0
 
 #define FREQ 50.0
+#define PHASE_0 0.0
 
 #define Vf_amp 100.0
-#define Vf_phase M_PI/2.0 // Phase relative to Iv
+#define Vf_phase M_PI/2.0 // Phase relative to PHASE_0
 #define Vdc 300.0
 
 // Costs and references
@@ -35,6 +36,7 @@
 #define q2 0.3
 
 #define Iv_ref_amp 50.0
+#define Iv_phase M_PI // Phase relative to PHASE_0
 
 #define P 7.5e3
 #define Idc_ref P/Vdc
@@ -74,9 +76,7 @@ static const real_t U_MIN[N_U] = {u1_min, u2_min};
 static const real_t U_MAX[N_U] = {u1_max, u2_max};
 
 // Initial conditions
-#define PHASE_0 0.0
-
-#define Iv_0 (Iv_ref_amp*sin(PHASE_0))
+#define Iv_0 (Iv_ref_amp*sin(PHASE_0 + Iv_phase))
 #define Icir_0 Icir_ref
 #define Vsigma_u_0 Vdc
 #define Vsigma_l_0 Vdc
@@ -112,7 +112,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
     // Initialize trajectory
     real_t omega = 2.0*M_PI*FREQ*Ts;
     for (size_t i = 0; i < N; ++i) {
-        x[i*N_X + 0] = Iv_ref_amp*sin(omega*(real_t)i + PHASE_0);
+        x[i*N_X + 0] = Iv_ref_amp*sin(omega*(real_t)i + PHASE_0 + Iv_phase);
         x[i*N_X + 1] = Icir_0;
         x[i*N_X + 2] = Vsigma_u_0;
         x[i*N_X + 3] = Vsigma_l_0;
@@ -128,7 +128,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
         mmc_trajectory_shift(N_U, N, CAST_CONST_2D_VLA(u, N_U), CAST_2D_VLA(u, N_U));
         // Extrapolate references and disturbances
         extrapolate_sine(N, Vf_amp, FREQ, Ts, PHASE_0 + Vf_phase + 2.0*M_PI*FREQ*Ts*(real_t)i, 0.0, Vf);
-        extrapolate_sine(N, Iv_ref_amp, FREQ, Ts, PHASE_0 + 2.0*M_PI*FREQ*Ts*(real_t)i, 0.0, Iv_ref);
+        extrapolate_sine(N, Iv_ref_amp, FREQ, Ts, PHASE_0 + Iv_phase + 2.0*M_PI*FREQ*Ts*(real_t)i, 0.0, Iv_ref);
         // Get linearized discrete model
         mmc_model_get(N, CAST_CONST_2D_VLA(x, N_X), CAST_CONST_2D_VLA(u, N_U), 
                 Vf, Vdc, 
