@@ -10,10 +10,8 @@ typedef struct {
     size_t pivot; // Index of first element that is counted as part of partition if in set
     size_t partition; // Number of elements >=pivot in set
     uint8_t* elements; // Set membership array
-    size_t* next; // Next element in iteration sequence
-    size_t* prev; // Previous element in iteration sequence
-    size_t first; // First element in iteration sequence
-    size_t last; // Last element in iteration sequence
+    size_t* ordering; // Elements in given positions
+    size_t* ordering_of; // Positions of given elements
 } iterable_set_t;
 
 /**
@@ -82,27 +80,12 @@ size_t iterable_set_partition(const iterable_set_t* set);
  */
 uint8_t iterable_set_contains(const iterable_set_t* set, size_t element);
 
-/**
- * @brief Returns the first element of a set iteration.
- *
- * @param[in] set Iterable set instance
- * @return The first element of a set iteration
- */
-size_t iterable_set_first(const iterable_set_t* set);
+size_t iterable_set_nth(const iterable_set_t *set, size_t n);
 
 /**
- * @brief Returns the next element in a set iteration.
+ * @brief Returns the value returned by iterable_set_nth when called with an overshooting index.
  *
  * @param[in] set Iterable set instance
- * @param[in] element The previous element
- * @return The next element
- */
-size_t iterable_set_next(const iterable_set_t* set, size_t element);
-
-/**
- * @brief Returns the value returned by iterable_set_next when called with the last element.
- *
- * @param[in] set Iterable set instance
- * @return The value returned by iterable_set_next when called with the last element
+ * @return The value returned by iterable_set_nth when called with an overshooting index
  */
 size_t iterable_set_end(const iterable_set_t* set);

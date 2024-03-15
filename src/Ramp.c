@@ -98,7 +98,7 @@ static int compute_v(size_t n_H, const iterable_set_t* a_set, const indexed_vect
         v[i] = iterable_set_contains(a_set, i) ? 0.0 : m_column_M4[i]; // 0.0 because the "dense part" computation takes care of the value
     }
     // Dense part
-    for (size_t i = iterable_set_first(a_set); i != iterable_set_end(a_set); i = iterable_set_next(a_set, i)) {
+    for (size_t n = 0, i = iterable_set_nth(a_set, n); i != iterable_set_end(a_set); i = iterable_set_nth(a_set, ++n)) {
         linalg_vector_add_scaled(n_H, v, indexed_vectors_get(invq, i), m_column_M4[i], v);
     }
     // At this point v is defined as in the paper
@@ -129,7 +129,7 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const i
             continue;
         }
         real_t numerator = m_column_M4[j];
-        for (size_t k = iterable_set_first(a_set); k != iterable_set_end(a_set); k = iterable_set_next(a_set, k)) {
+        for (size_t n = 0, k = iterable_set_nth(a_set, n); k != iterable_set_end(a_set); k = iterable_set_nth(a_set, ++n)) {
             numerator += indexed_vectors_get(invq, k)[j] * m_column_M4[k];
         }
         real_t val = iterable_set_contains(a_set, i) ? -numerator/y[j] : numerator/y[j];
@@ -143,7 +143,7 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const i
             continue;
         }
         real_t numerator = 0.0;
-        for (size_t k = iterable_set_first(a_set); k != iterable_set_end(a_set); k = iterable_set_next(a_set, k)) {
+        for (size_t n = 0, k = iterable_set_nth(a_set, n); k != iterable_set_end(a_set); k = iterable_set_nth(a_set, ++n)) {
             numerator += indexed_vectors_get(invq, k)[j] * m_column_M4[k];
         }
         real_t val = iterable_set_contains(a_set, i) ? -numerator/y[j] : numerator/y[j];
@@ -156,7 +156,7 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const i
 }
 
 static inline void update_invq(size_t n_H, size_t index, const iterable_set_t* a_set, const real_t v[n_H], indexed_vectors_t *invq) {
-    for (size_t i = iterable_set_first(a_set); i != iterable_set_end(a_set); i = iterable_set_next(a_set, i)) {
+    for (size_t n = 0, i = iterable_set_nth(a_set, n); i != iterable_set_end(a_set); i = iterable_set_nth(a_set, ++n)) {
         real_t* invqi = indexed_vectors_get_mut(invq, i);
         linalg_vector_add_scaled(n_H, invqi, v, invqi[index], invqi);
     }
@@ -249,7 +249,7 @@ int ramp_solve(size_t n_H, size_t n_a, int hotstart_variant, real_t y[n_H]) {
     switch (hotstart_variant) {
         case RAMP_HOTSTART_M4_UNCHANGED:
             memcpy(m_v, y, sizeof(real_t)*n_H); // Use m_v temporarily
-            for (size_t i = iterable_set_first(&m_a_set); i != iterable_set_end(&m_a_set); i = iterable_set_next(&m_a_set, i)) {
+            for (size_t n = 0, i = iterable_set_nth(&m_a_set, n); i != iterable_set_end(&m_a_set); i = iterable_set_nth(&m_a_set, ++n)) {
                 linalg_vector_add_scaled(n_H, y, indexed_vectors_get(&m_invq, i), m_v[i], y);
                 y[i] -= m_v[i];
             }
