@@ -46,14 +46,14 @@ void ramp_disable_infeasibility_error(void) {
 static inline size_t most_incorrect_active_constraint(size_t n_H, size_t n_a, const iterable_set_t* a_set, real_t y[n_H]) {
     real_t min = -RAMP_EPS;
     size_t index = n_H; // Invalid index, think of it as -1 but using an unsigned data type for efficiency
-    for (size_t i = 0; i < n_a; ++i) {
-        if (-y[i] < min && !iterable_set_contains(a_set, i)) {
+    for (size_t n = 0, i = iterable_set_nth_missing_low(a_set, n); i != iterable_set_end(a_set); i = iterable_set_nth_missing_low(a_set, ++n)) {
+        if (-y[i] < min) {
             min = -y[i];
             index = i;
         }
     }
-    for (size_t i = n_a; i < n_H; ++i) {
-        if (y[i] < min && iterable_set_contains(a_set, i)) {
+    for (size_t n = 0, i = iterable_set_nth_high(a_set, n); i != iterable_set_end(a_set); i = iterable_set_nth_high(a_set, ++n)) {
+        if (y[i] < min) {
             min = y[i];
             index = i;
         }
@@ -65,14 +65,14 @@ static inline size_t most_incorrect_active_constraint(size_t n_H, size_t n_a, co
 static inline size_t most_incorrect_inactive_constraint(size_t n_H, size_t n_a, const iterable_set_t* a_set, real_t y[n_H]) {
     real_t max = RAMP_EPS;
     size_t index = n_H; // Invalid index, think of it as -1 but using an unsigned data type for efficiency
-    for (size_t i = 0; i < n_a; ++i) {
-        if (-y[i] > max && iterable_set_contains(a_set, i)) {
+    for (size_t n = 0, i = iterable_set_nth_low(a_set, n); i != iterable_set_end(a_set); i = iterable_set_nth_low(a_set, ++n)) {
+        if (-y[i] > max) {
             max = -y[i];
             index = i;
         }    
     }
-    for (size_t i = n_a; i < n_H; ++i) {
-        if (y[i] > max && !iterable_set_contains(a_set, i)) {
+    for (size_t n = 0, i = iterable_set_nth_missing_high(a_set, n); i != iterable_set_end(a_set); i = iterable_set_nth_missing_high(a_set, ++n)) {
+        if (y[i] > max) {
             max = y[i];
             index = i;
         }    
@@ -114,10 +114,7 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const i
     real_t min = 0.0;
     size_t index = n_H;
     m_get_column_M4(i, m_column_M4);
-    for (size_t j = 0; j < n_a; ++j) {
-        if (iterable_set_contains(a_set, j)) {
-            continue;
-        }
+    for (size_t n = 0, j = iterable_set_nth_missing_low(a_set, n); j != iterable_set_end(a_set); j = iterable_set_nth_missing_low(a_set, ++n)) {
         real_t numerator = m_column_M4[j];
         for (size_t n = 0, k = iterable_set_nth(a_set, n); k != iterable_set_end(a_set); k = iterable_set_nth(a_set, ++n)) {
             numerator += indexed_vectors_get(invq, k)[j] * m_column_M4[k];
@@ -128,10 +125,7 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const i
             index = j;
         }
     }
-    for (size_t j = n_a; j < n_H; ++j) {
-        if (!iterable_set_contains(a_set, j)) {
-            continue;
-        }
+    for (size_t n = 0, j = iterable_set_nth_high(a_set, n); j != iterable_set_end(a_set); j = iterable_set_nth_high(a_set, ++n)) {
         real_t numerator = 0.0;
         for (size_t n = 0, k = iterable_set_nth(a_set, n); k != iterable_set_end(a_set); k = iterable_set_nth(a_set, ++n)) {
             numerator += indexed_vectors_get(invq, k)[j] * m_column_M4[k];
