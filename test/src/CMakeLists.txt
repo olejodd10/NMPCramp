@@ -1,8 +1,8 @@
 add_executable(TestLmpcConstant TestLmpcConstant.c)
-target_link_libraries(TestLmpcConstant PRIVATE LmpcConstant)
+target_link_libraries(TestLmpcConstant PRIVATE LmpcConstant SdqpLmpcConstant Simulate)
 
 add_executable(TestLmpcVarying TestLmpcVarying.c)
-target_link_libraries(TestLmpcVarying PRIVATE LmpcVarying)
+target_link_libraries(TestLmpcVarying PRIVATE SdqpLmpcVarying Simulate)
 
 add_executable(TestSimulateMmc TestSimulateMmc.c)
-target_link_libraries(TestSimulateMmc PRIVATE SimulateMmc)
+target_link_libraries(TestSimulateMmc PRIVATE SdqpLmpcMmc Simulate MmcModel SimulateMmcUtils m)

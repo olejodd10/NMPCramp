@@ -1,20 +1,28 @@
-add_library(SdqpLmpcConstant STATIC Ramp.c SdqpLmpcConstant.c LinAlg.c IndexedVectors.c IterableSet.c)
-target_include_directories(SdqpLmpcConstant PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_library(Ramp OBJECT Ramp.c LinAlg.c IndexedVectors.c IterableSet.c)
+target_include_directories(Ramp PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(Ramp PUBLIC m)
 
-add_library(LmpcConstant STATIC LmpcConstant.c Simulate.c Csv.c)
-target_link_libraries(LmpcConstant PUBLIC SdqpLmpcConstant)
+add_library(Simulate OBJECT Simulate.c Csv.c)
+target_include_directories(Simulate PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-add_library(SdqpLmpcVarying STATIC Ramp.c SdqpLmpcVarying.c LinAlg.c IndexedVectors.c IterableSet.c)
-target_include_directories(SdqpLmpcVarying PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-add_library(LmpcVarying OBJECT Simulate.c Csv.c)
-target_link_libraries(LmpcVarying PUBLIC SdqpLmpcVarying)
+add_library(SdqpLmpcConstant STATIC SdqpLmpcConstant.c)
+target_link_libraries(SdqpLmpcConstant PUBLIC Ramp)
 
-add_library(SdqpLmpcMmc STATIC Ramp.c SdqpLmpcMmc.c LinAlg.c IndexedVectors.c IterableSet.c)
-target_include_directories(SdqpLmpcMmc PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_library(LmpcConstant OBJECT LmpcConstant.c)
+target_include_directories(LmpcConstant PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
+
+add_library(SdqpLmpcVarying STATIC SdqpLmpcVarying.c)
+target_link_libraries(SdqpLmpcVarying PUBLIC Ramp)
+
+
+add_library(SdqpLmpcMmc STATIC SdqpLmpcMmc.c)
+target_link_libraries(SdqpLmpcMmc PUBLIC Ramp)
 
 add_library(MmcModel OBJECT MmcModel.c LinAlg.c)
 target_include_directories(MmcModel PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-add_library(SimulateMmc OBJECT Csv.c Extrapolate.c MmcModel.c MmcTrajectory.c Simulate.c)
-target_link_libraries(SimulateMmc PUBLIC m SdqpLmpcMmc)
+add_library(SimulateMmcUtils OBJECT Extrapolate.c MmcTrajectory.c)
+target_include_directories(SimulateMmcUtils PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(SimulateMmcUtils PUBLIC m)
