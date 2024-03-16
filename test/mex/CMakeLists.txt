@@ -1,4 +1,11 @@
-add_test(NAME TestMexSimulateMmc_Horizons_1_2_5_10 COMMAND matlab -nodesktop -nosplash -wait -r 
+if (CMAKE_HOST_WIN32)
+    message(STATUS "TestMexSimulateMmc configured for Windows")
+    set(TEST_MEX_SIMULATE_MMC_MATLAB_FLAGS -nodesktop -nosplash -wait)
+else()
+    set(TEST_MEX_SIMULATE_MMC_MATLAB_FLAGS -nodisplay)
+endif()
+
+add_test(NAME TestMexSimulateMmc_Horizons_1_2_5_10 COMMAND matlab ${TEST_MEX_SIMULATE_MMC_MATLAB_FLAGS} -r 
     "addpath('${CMAKE_BINARY_DIR}/mex'), \
      addpath('${CMAKE_CURRENT_SOURCE_DIR}'), \
      TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 1, 100), \
