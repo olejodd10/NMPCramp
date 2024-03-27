@@ -185,7 +185,7 @@ static void get_column_M4b(
             }
         }
     } else {
-        column_M4[local_index - (2*n_y*(N-1) + n_t)] = 1.0; // Note the sign. The value there is zero, but we set it instead of adding because whatever
+        column_M4[local_index - (2*n_y*(N-1) + n_t)] = -1.0; // Note the sign. The value there is zero, but we set it instead of adding because whatever
     }
 
     // Bottom block/last n_b elements
