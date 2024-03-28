@@ -11,3 +11,5 @@
 
 #define MATRIX_ROW(M, n, i) (&M[n*i])
 #define MATRIX_ELEMENT(M, n, i, j) (M[n*i+j])
+
+#define PI 3.14159265358979323846
