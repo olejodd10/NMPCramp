@@ -27,9 +27,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     }
 
     for (int i = 0; i < NRHS; ++i) {
-        if( !mxIsSingle(prhs[i]) || 
+        if( !mxIsDouble(prhs[i]) || 
              mxIsComplex(prhs[i])) {
-            mexErrMsgTxt("Input must be type single.");
+            mexErrMsgTxt("Input must be type double.");
         }
     }
 
@@ -42,48 +42,48 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     if (mex_assert_1d_array_dimensions(prhs[5], n_x))
         mexErrMsgTxt("Input x_min must have n_x elements.");
-    real_t *x_min = mxGetSingles(prhs[5]);
+    real_t *x_min = mxGetDoubles(prhs[5]);
     if (mex_assert_1d_array_dimensions(prhs[6], n_x))
         mexErrMsgTxt("Input x_max must have n_x elements.");
-    real_t *x_max = mxGetSingles(prhs[6]);
+    real_t *x_max = mxGetDoubles(prhs[6]);
 
     real_t n_sm = mxGetScalar(prhs[7]);
     real_t insertion_index_deviation_allowance = mxGetScalar(prhs[8]);
 
     if (mex_assert_1d_array_dimensions(prhs[9], n_u))
         mexErrMsgTxt("Input u_min must have n_u elements.");
-    real_t *u_min = mxGetSingles(prhs[9]);
+    real_t *u_min = mxGetDoubles(prhs[9]);
     if (mex_assert_1d_array_dimensions(prhs[10], n_u))
         mexErrMsgTxt("Input u_max must have n_u elements.");
-    real_t *u_max = mxGetSingles(prhs[10]);
+    real_t *u_max = mxGetDoubles(prhs[10]);
 
     if (mex_assert_1d_array_dimensions(prhs[11], N))
         mexErrMsgTxt("Input x1_ref must have N elements.");
-    real_t *x1_ref = mxGetSingles(prhs[11]);
+    real_t *x1_ref = mxGetDoubles(prhs[11]);
     real_t x2_ref = mxGetScalar(prhs[12]);
 
     if (mex_assert_3d_array_dimensions(prhs[13], n_x, n_x, N))
         mexErrMsgTxt("Input A must be n_x by n_x by N.");
-    real_t *A = mxGetSingles(prhs[13]);
+    real_t *A = mxGetDoubles(prhs[13]);
     if (mex_assert_3d_array_dimensions(prhs[14], n_u, n_x, N))
         mexErrMsgTxt("Input B must be n_u by n_x by N.");
-    real_t *B = mxGetSingles(prhs[14]);
+    real_t *B = mxGetDoubles(prhs[14]);
     if (mex_assert_2d_array_dimensions(prhs[15], n_x, N))
         mexErrMsgTxt("Input d must be n_x by N.");
-    real_t *d = mxGetSingles(prhs[15]);
+    real_t *d = mxGetDoubles(prhs[15]);
 
     if (mex_assert_1d_array_dimensions(prhs[16], n_x))
         mexErrMsgTxt("Input x0 must have n_x elements.");
-    real_t *x0 = mxGetSingles(prhs[16]);
+    real_t *x0 = mxGetDoubles(prhs[16]);
 
     if (mex_assert_2d_array_dimensions(prhs[17], n_x, N))
         mexErrMsgTxt("Input x must be n_x by N.");
     plhs[0] = mxDuplicateArray(prhs[17]);
-    real_t *x = mxGetSingles(plhs[0]);
+    real_t *x = mxGetDoubles(plhs[0]);
     if (mex_assert_2d_array_dimensions(prhs[18], n_u, N))
         mexErrMsgTxt("Input u must be n_u by N.");
     plhs[1] = mxDuplicateArray(prhs[18]);
-    real_t *u = mxGetSingles(plhs[1]);
+    real_t *u = mxGetDoubles(plhs[1]);
 
 
     if (!initialized) {
