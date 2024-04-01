@@ -13,6 +13,7 @@
 #include "Csv.h"
 #include "Simulate.h"
 #include "Utils.h"
+#include "Timer.h"
 
 // System parameters
 #define R 10.0e-3
@@ -122,7 +123,9 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
         u[i*N_U + 1] = N_SM/2.0*sin(omega*(real_t)i + PHASE_0 + Vf_phase) + N_SM/2.0;
     }
 
+    long long simulation_time_ns = 0;
     for (size_t i = 0; i < simulation_timesteps; ++i) {
+        timer_reset();
         // Predict trajectory
         memcpy(x, &xout[i*N_X], sizeof(real_t)*N_X); // We prefer simulation/measurement value to MPC value
         mmc_trajectory_shift(N_U, N, CAST_CONST_2D_VLA(u, N_U), CAST_2D_VLA(u, N_U));
@@ -141,10 +144,14 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
             printf("Error while solving: %d\n", err);
             return 1;
         }
+        simulation_time_ns += (long long)timer_elapsed_ns();
         // Simulate using linearized discrete model
         simulate_affine(N_X, N_U, CAST_CONST_2D_VLA(A, N_X), &xout[i*N_X], CAST_CONST_2D_VLA(B, N_U), u, d, &xout[(i+1)*N_X]);
         memcpy(&uout[i*N_U], u, sizeof(real_t)*N_U);
     }
+
+    // Timer output
+    printf("%ld timesteps with horizon %ld finished in %lld ms\n", simulation_timesteps, N, simulation_time_ns/1000000);
 
     // Save output
     char path[128];

@@ -1,8 +1,8 @@
 add_executable(TestLmpcConstant TestLmpcConstant.c)
-target_link_libraries(TestLmpcConstant PRIVATE LmpcConstant SdqpLmpcConstant Simulate)
+target_link_libraries(TestLmpcConstant PRIVATE LmpcConstant SdqpLmpcConstant Simulate Timer)
 
 add_executable(TestLmpcVarying TestLmpcVarying.c)
-target_link_libraries(TestLmpcVarying PRIVATE SdqpLmpcVarying Simulate)
+target_link_libraries(TestLmpcVarying PRIVATE SdqpLmpcVarying Simulate Timer)
 
 add_executable(TestSimulateMmc TestSimulateMmc.c)
-target_link_libraries(TestSimulateMmc PRIVATE SdqpLmpcMmc Simulate MmcModel SimulateMmcUtils m)
+target_link_libraries(TestSimulateMmc PRIVATE SdqpLmpcMmc Simulate MmcModel SimulateMmcUtils Timer m)

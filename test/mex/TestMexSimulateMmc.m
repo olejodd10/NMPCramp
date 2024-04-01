@@ -90,7 +90,9 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
     d = zeros(N_X, N, 'double');
 
     % Simulate
+    simulation_time_s = 0.0;
     for i = 1:simulation_timesteps
+        tic;
         % Predict trajectory
         x(:,1) = xout(i,:)'; % We prefer simulation/measurement value to MPC value
         % Shift input trajectory
@@ -105,6 +107,7 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
 
         % Solve QP
         [x,u] = MexSdqpLmpcMmc(N_X, N_U, N, q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX, Iv_ref, Icir_ref, A, B, d, xout(i,:), x, u);
+        simulation_time_s = simulation_time_s + toc;
 
         % Simulate using linearized discrete model
         A0 = squeeze(A(:,:,1))';
@@ -115,6 +118,9 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
         xout(i+1,:) = (A0*x0 + B0*u0 + d0)';
         uout(i,:) = u(:,1)';
     end
+
+    % Timer output
+    fprintf("%d timesteps with horizon %d finished in %f ms\n", simulation_timesteps, N, simulation_time_s*1000);
 
     % Save output
     writematrix(xout, output_dir + "/xoutN" + N + ".csv");

@@ -9,6 +9,7 @@
 #include "Types.h"
 #include "Utils.h"
 #include "Csv.h"
+#include "Timer.h"
 #include "SdqpLmpcConstant.h"
 
 int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t N, size_t simulation_timesteps) {
@@ -135,15 +136,21 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
             y_min, y_max, CAST_CONST_2D_VLA(Lt, n_x), lt, u_min, u_max);
 
     // Simulate
+    long long simulation_time_ns = 0;
     for (size_t i = 0; i < simulation_timesteps; ++i) {
+        timer_reset();
         int err = sdqp_lmpc_constant_solve(n_x, n_u, N, &xout[i*n_x], CAST_2D_VLA(x, n_x), CAST_2D_VLA(u, n_u));
         if (err) {
             printf("Error while solving: %d\n", err);
             return 1;
         }
+        simulation_time_ns += (long long)timer_elapsed_ns();
         simulate_lti(n_x, n_u, CAST_CONST_2D_VLA(A, n_x), &xout[i*n_x], CAST_CONST_2D_VLA(B, n_u), u, &xout[(i+1)*n_x]);
         memcpy(&uout[i*n_u], u, sizeof(real_t)*n_u);
     }
+
+    // Timer output
+    printf("%ld timesteps with horizon %ld finished in %lld ms\n", simulation_timesteps, N, simulation_time_ns/1000000);
 
     // Save output
     sprintf(path, "%s/xout.csv", output_dir);
