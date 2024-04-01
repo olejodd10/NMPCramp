@@ -28,7 +28,7 @@
 #define PHASE_0 0.0
 
 #define Vf_amp 100.0
-#define Vf_phase M_PI/2.0 // Phase relative to PHASE_0
+#define Vf_phase 0.0 // Phase relative to PHASE_0
 #define Vdc 300.0
 
 // Costs and references

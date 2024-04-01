@@ -13,7 +13,7 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
     PHASE_0 = 0.0;
     
     Vf_amp = 100.0;
-    Vf_phase = pi/2.0; % Phase relative to PHASE_0
+    Vf_phase = 0.0; % Phase relative to PHASE_0
     Vdc = 300.0;
     
     % Costs and references
