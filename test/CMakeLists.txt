@@ -60,9 +60,9 @@ add_test(NAME TestLmpcVarying_OsqpModel6_Verify_Uout COMMAND python ${CMAKE_CURR
 add_test(NAME TestLmpcVarying_OsqpModel6_Verify_Xout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6/xref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6/xout.csv 2e-1)
 
 
-add_test(NAME TestSimulateMmc_Horizon1 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 1 100)
-add_test(NAME TestSimulateMmc_Horizon2 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 2 100)
-add_test(NAME TestSimulateMmc_Horizon5 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 5 100)
-add_test(NAME TestSimulateMmc_Horizon10 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 10 100)
+add_test(NAME TestSimulateMmc_Horizon1 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 1 10000)
+add_test(NAME TestSimulateMmc_Horizon2 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 2 10000)
+add_test(NAME TestSimulateMmc_Horizon5 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 5 10000)
+add_test(NAME TestSimulateMmc_Horizon10 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 10 10000)
 
 add_subdirectory(mex)

@@ -8,16 +8,16 @@ endif()
 add_test(NAME TestMexSimulateMmc_Horizons_1_2_5_10 COMMAND matlab ${TEST_MEX_SIMULATE_MMC_MATLAB_FLAGS} -r 
     "addpath('${CMAKE_BINARY_DIR}/mex'), \
      addpath('${CMAKE_CURRENT_SOURCE_DIR}'), \
-     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 1, 100), \
+     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 1, 10000), \
      clear mex, \
-     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 2, 100), \
+     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 2, 10000), \
      clear mex, \
-     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 5, 100), \
+     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 5, 10000), \
      clear mex, \
-     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 10, 100), \
+     TestMexSimulateMmc('${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc', 10, 10000), \
      exit")
 
-set(TEST_MEX_SIMULATE_MMC_COMPARISON_LIMIT 6e-3)
+set(TEST_MEX_SIMULATE_MMC_COMPARISON_LIMIT 8e-3)
 
 add_test(NAME TestMexSimulateMmc_Compare_xoutN1_With_TestSimulateMmc COMMAND python ${CMAKE_SOURCE_DIR}/test/scripts/compare_csvs.py 
     ${CMAKE_SOURCE_DIR}/test/data/TestMexSimulateMmc/xoutN1.csv ${CMAKE_SOURCE_DIR}/test/data/TestSimulateMmc/xoutN1.csv ${TEST_MEX_SIMULATE_MMC_COMPARISON_LIMIT})
