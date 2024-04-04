@@ -50,20 +50,6 @@
 #define Ts 70.0e-6
 
 // Constraints
-#define Iv_0_min -60.0
-#define Icir_0_min -50.0
-#define Vsigma_u_min 0.0
-#define Vsigma_l_min 0.0
-
-static const real_t X_MIN[N_X] = {Iv_0_min, Icir_0_min, Vsigma_u_min, Vsigma_l_min};
-
-#define Iv_0_max 60.0
-#define Icir_0_max 50.0
-#define Vsigma_u_max 1000.0
-#define Vsigma_l_max 1000.0
-
-static const real_t X_MAX[N_X] = {Iv_0_max, Icir_0_max, Vsigma_u_max, Vsigma_l_max};
-
 #define INSERTION_INDEX_DEVIATION_ALLOWANCE 2.0
 
 #define u1_min 0.0
@@ -103,7 +89,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
     mmc_model_get_fe_init(R, Rc, L, Lc, C, Ts, N_SM, N, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
 
     // Initialize solver
-    sdqp_lmpc_mmc_init(N_X, N_U, N, q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX);
+    sdqp_lmpc_mmc_init(N_X, N_U, N, q1, q2, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX);
 
     // Initialize state
     xout[0] = Iv_0;

@@ -26,8 +26,6 @@ static real_t m_q2;
 static const real_t *m_A;
 static const real_t *m_B;
 
-static const real_t *m_x_min;
-static const real_t *m_x_max;
 static real_t m_n_sm;
 static real_t m_insertion_index_deviation_allowance;
 static const real_t *m_u_min;
@@ -115,18 +113,12 @@ static void get_column_M4a(
     // Don't confuse -HbMH2 with -HbMH
     // Note that m_temp1 already contains (...)^-1*Bhat(:,index), So we really just need to multiply with -Hb
 
-    // Top two blocks
-    for (size_t i = 0; i < n_M; ++i) {
-        column_M4[n_a + i] = m_temp1[i]; // Note sign
-        column_M4[n_a + n_M + i] = -m_temp1[i]; // Note sign
-    }
-
     // M2 blocks. Remember the negation
-    column_M4[n_a + 2*n_M + local_index/n_u] = 1.0; // Note the signs here!
-    column_M4[n_a + 2*n_M + N + local_index/n_u] = -1.0;
+    column_M4[n_a + local_index/n_u] = 1.0; // Note the signs here!
+    column_M4[n_a + N + local_index/n_u] = -1.0;
 
     // The I-block of -HbMH2. Note the double negation
-    column_M4[n_a + 2*(n_M+N) + local_index] += 1.0;
+    column_M4[n_a + 2*N + local_index] += 1.0;
 }
 
 static void get_column_M4b(
@@ -136,7 +128,6 @@ static void get_column_M4b(
         size_t n_u,
         size_t N,
 
-        size_t n_M,
         size_t n_a,
 
         const real_t A[N][n_x][n_x],
@@ -145,29 +136,16 @@ static void get_column_M4b(
         real_t *column_M4) 
 {
     // Top block/first n_a elements first
-    if (local_index < 2*n_M) {
-        memset(m_temp1, 0, sizeof(real_t)*n_M);
-        if (local_index < n_M) {
-            m_temp1[local_index] = -1.0;
-        } else {
-            m_temp1[local_index - n_M] = 1.0;
-        } 
-        multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
-        for (size_t i = 0; i < N; ++i) {
-            for (size_t j = 0; j < n_x; ++j) {
-                linalg_vector_add_scaled(n_u, &column_M4[i*n_u], B[i][j], m_temp1[i*n_x + j], &column_M4[i*n_u]);
-            }
-        }
-    } else if (local_index < 2*n_M + N) {
+    if (local_index < N) {
         for (size_t i = 0; i < n_u; ++i) {
-            column_M4[(local_index - 2*n_M)*n_u + i] = -1.0;
+            column_M4[local_index*n_u + i] = -1.0;
         }
-    } else if (local_index < 2*(n_M + N)) {
+    } else if (local_index < 2*N) {
         for (size_t i = 0; i < n_u; ++i) {
-            column_M4[(local_index - 2*n_M - N)*n_u + i] = 1.0;
+            column_M4[(local_index - N)*n_u + i] = 1.0;
         }
     } else {
-        column_M4[local_index - 2*(n_M + N)] = -1.0;
+        column_M4[local_index - 2*N] = -1.0;
     }
 
     // Bottom block/last n_b elements
@@ -187,7 +165,7 @@ static void get_column_M4(size_t index, real_t *column_M4) {
     } else {
         get_column_M4b(index - m_n_a,
             m_n_x, m_n_u, m_N,
-            m_n_M, m_n_a,
+            m_n_a,
             CAST_CONST_3D_VLA(m_A, m_n_x, m_n_x), CAST_CONST_3D_VLA(m_B, m_n_x, m_n_u),
             column_M4);
     }
@@ -198,7 +176,6 @@ static void initialize_y(
         size_t n_u,
         size_t N,
 
-        size_t n_M,
         size_t n_H, 
         size_t n_a, 
 
@@ -211,8 +188,6 @@ static void initialize_y(
         const real_t B[N][n_x][n_u],
         const real_t d[N][n_x],
 
-        const real_t x_min[n_x],
-        const real_t x_max[n_x],
         real_t n_sm,
         real_t insertion_index_deviation_allowance,
         const real_t u_min[n_u],
@@ -239,40 +214,28 @@ static void initialize_y(
     multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(m_temp2, n_x));
 
     // Multiply out of place with Hb, store result in last n_b of y
-    for (size_t i = 0; i < n_M; ++i) {
-        y[n_a + i] = -m_temp2[i];
-    }
-    for (size_t i = 0; i < n_M; ++i) {
-        y[n_a + n_M + i] = m_temp2[i];
-    }
     real_t temp = 0.0;
     for (size_t i = 0; i < n_u; ++i) {
         temp += u_max[i];
     }
     for (size_t i = 0; i < N; ++i) {
-        y[n_a + 2*n_M + i] = -temp;
-        y[n_a + 2*n_M + N + i] = temp;
+        y[n_a + i] = -temp;
+        y[n_a + N + i] = temp;
     }
     for (size_t i = 0; i < n_a; ++i) {
-        y[n_a + 2*(n_M + N) + i] = -u_max[i % n_u];
+        y[n_a + 2*N + i] = -u_max[i % n_u];
     }
 
     // Subtract hb from last n_b of y
     // Note the signs
-    for (size_t i = 0; i < n_M; ++i) {
-        y[n_a + i] += x_min[i % n_x];
-    }
-    for (size_t i = 0; i < n_M; ++i) {
-        y[n_a + n_M + i] -= x_max[i % n_x];
+    for (size_t i = 0; i < N; ++i) {
+        y[n_a + i] -= insertion_index_deviation_allowance - n_sm;
     }
     for (size_t i = 0; i < N; ++i) {
-        y[n_a + 2*n_M + i] -= insertion_index_deviation_allowance - n_sm;
-    }
-    for (size_t i = 0; i < N; ++i) {
-        y[n_a + 2*n_M + N + i] -= insertion_index_deviation_allowance + n_sm;
+        y[n_a + N + i] -= insertion_index_deviation_allowance + n_sm;
     }
     for (size_t i = 0; i < n_u*N; ++i) {
-        y[n_a + 2*(n_M + N) + i] += u_min[i % n_u];
+        y[n_a + 2*N + i] += u_min[i % n_u];
     }
 
     // Multiply MH[A0x0+d ha] with P, then add f (result n_z, but n_a of it can go directly to y because of I in MH2T)
@@ -331,8 +294,6 @@ void sdqp_lmpc_mmc_init(
         real_t q1,
         real_t q2,
 
-        const real_t x_min[n_x],
-        const real_t x_max[n_x],
         real_t n_sm,
         real_t insertion_index_deviation_allowance,
         const real_t u_min[n_u],
@@ -344,14 +305,12 @@ void sdqp_lmpc_mmc_init(
 
 	m_n_z = (n_x+n_u)*N;
     m_n_M = n_x*N;
-    m_n_H = 2*N*(n_x+1+n_u);
+    m_n_H = 2*N*(1+n_u);
     m_n_a = n_u*N;
 
     m_q1 = q1;
     m_q2 = q2;
 
-    m_x_min = (real_t*)x_min;
-    m_x_max = (real_t*)x_max;
     m_n_sm = n_sm;
     m_insertion_index_deviation_allowance = insertion_index_deviation_allowance;
     m_u_min = (real_t*)u_min;
@@ -386,10 +345,10 @@ int sdqp_lmpc_mmc_solve(size_t n_x, size_t n_u, size_t N, const real_t x1_ref[N]
     m_B = (real_t*)B;
     iterable_set_clear(&m_a_set);
     indexed_vectors_clear(&m_invq);
-    initialize_y(n_x, n_u, N, m_n_M, m_n_H, m_n_a,
+    initialize_y(n_x, n_u, N, m_n_H, m_n_a,
         m_q1, m_q2, x1_ref, x2_ref,
 		A, B, d,
-        m_x_min, m_x_max, m_n_sm, m_insertion_index_deviation_allowance, m_u_min, m_u_max, 
+        m_n_sm, m_insertion_index_deviation_allowance, m_u_min, m_u_max, 
         x0, m_y);
     int err = ramp_solve(m_n_H, m_n_a, &m_a_set, &m_invq, m_y);
     if (err) {

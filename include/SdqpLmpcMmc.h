@@ -12,8 +12,6 @@ void sdqp_lmpc_mmc_init(
         real_t q1,
         real_t q2,
 
-        const real_t x_min[n_x],
-        const real_t x_max[n_x],
         real_t n_sm,
         real_t insertion_index_deviation_allowance,
         const real_t u_min[n_u],

@@ -34,20 +34,6 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
     Ts = 70.0e-6;
     
     % Constraints
-    Iv_0_min = -60.0;
-    Icir_0_min = -50.0;
-    Vsigma_u_min = 0.0;
-    Vsigma_l_min = 0.0;
-    
-    X_MIN = [Iv_0_min, Icir_0_min, Vsigma_u_min, Vsigma_l_min];
-    
-    Iv_0_max = 60.0;
-    Icir_0_max = 50.0;
-    Vsigma_u_max = 1000.0;
-    Vsigma_l_max = 1000.0;
-    
-    X_MAX = [Iv_0_max, Icir_0_max, Vsigma_u_max, Vsigma_l_max];
-    
     INSERTION_INDEX_DEVIATION_ALLOWANCE = 2.0;
     
     u1_min = 0.0;
@@ -106,7 +92,7 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
         [A,B,d] = MexMmcModel(R, Rc, L, Lc, C, Ts, N_SM, N, x, u, vf, Vdc, A, B, d);
 
         % Solve QP
-        [x,u] = MexSdqpLmpcMmc(N_X, N_U, N, q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX, Iv_ref, Icir_ref, A, B, d, xout(i,:), x, u);
+        [x,u] = MexSdqpLmpcMmc(N_X, N_U, N, q1, q2, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX, Iv_ref, Icir_ref, A, B, d, xout(i,:), x, u);
         simulation_time_s = simulation_time_s + toc;
 
         % Simulate using linearized discrete model
