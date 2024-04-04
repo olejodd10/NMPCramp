@@ -56,9 +56,9 @@ static void multiply_inv_eye_sub_Ahat_inplace(size_t n_x, size_t N, const real_t
 }
 
 static void multiply_inv_eye_sub_Ahat_T_inplace(size_t n_x, size_t N, const real_t A[N][n_x][n_x], real_t v[N][n_x]) {
-    for (int i = N-2; i >= 0; --i) { 
+    for (int i = N-1; i >= 1; --i) { 
         for (size_t j = 0; j < n_x; ++j) {
-            linalg_vector_add_scaled(n_x, v[i], A[i][j], v[i+1][j], v[i]);
+            linalg_vector_add_scaled(n_x, v[i-1], A[i][j], v[i][j], v[i-1]);
         }
     }
 }
