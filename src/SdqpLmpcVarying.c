@@ -421,7 +421,7 @@ int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][
     m_B = (real_t*)B;
     iterable_set_clear(&m_a_set);
     indexed_vectors_clear(&m_invq);
-    initialize_y(n_x, n_u, m_n_y, m_n_t, N, m_n_H, m_n_H, m_n_a,
+    initialize_y(n_x, n_u, m_n_y, m_n_t, N, m_n_M, m_n_H, m_n_a,
 		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u), m_fx, m_fu,
 		A, B, d, CAST_CONST_2D_VLA(m_C, n_x),
 		m_y_min, m_y_max, CAST_CONST_2D_VLA(m_Lt, n_x), m_lt, m_u_min, m_u_max, 
