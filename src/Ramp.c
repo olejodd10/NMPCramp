@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <omp.h>
 
 #include "Types.h"
 #include "IterableSet.h"
@@ -98,6 +99,7 @@ static int compute_v(size_t n_H, const iterable_set_t* a_set, const indexed_vect
         v[i] = iterable_set_contains(a_set, i) ? 0.0 : m_column_M4[i]; // 0.0 because the "dense part" computation takes care of the value
     }
     // Dense part
+    #pragma omp parallel for num_threads(NUM_THREADS)
     for (size_t j = 0; j < n_H; ++j) {
         real_t sum = 0.0;
         for (size_t n = 0; n < iterable_set_size(a_set); ++n) {
@@ -163,6 +165,7 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const i
 }
 
 static inline void update_invq(size_t n_H, size_t index, const iterable_set_t* a_set, const real_t v[n_H], indexed_vectors_t *invq) {
+    #pragma omp parallel for num_threads(NUM_THREADS)
     for (size_t n = 0; n < iterable_set_size(a_set); ++n) {
         size_t i = iterable_set_nth(a_set, n);
         real_t* invqi = indexed_vectors_get_mut(invq, i);
