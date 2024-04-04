@@ -33,6 +33,33 @@ add_test(NAME TestLmpcVarying_QPrampExample3 COMMAND TestLmpcVarying ${CMAKE_CUR
 add_test(NAME TestLmpcVarying_QPrampExample3_Verify_Uout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/QPramp/example3/uref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/QPramp/example3/uout.csv 6e-6)
 add_test(NAME TestLmpcVarying_QPrampExample3_Verify_Xout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/QPramp/example3/xref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/QPramp/example3/xout.csv 5e-5)
 
+
+add_test(NAME TestLmpcConstant_OsqpModel4 COMMAND TestLmpcConstant ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4 ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4 10 100)
+add_test(NAME TestLmpcConstant_OsqpModel4_Verify_Uout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4/uref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4/uout.csv 6e-4)
+add_test(NAME TestLmpcConstant_OsqpModel4_Verify_Xout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4/xref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4/xout.csv 2e-3)
+
+add_test(NAME TestLmpcConstant_OsqpModel5 COMMAND TestLmpcConstant ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5 ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5 10 100)
+add_test(NAME TestLmpcConstant_OsqpModel5_Verify_Uout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5/uref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5/uout.csv 8e-4)
+add_test(NAME TestLmpcConstant_OsqpModel5_Verify_Xout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5/xref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5/xout.csv 3e-3)
+
+add_test(NAME TestLmpcConstant_OsqpModel6 COMMAND TestLmpcConstant ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6 ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6 10 100)
+add_test(NAME TestLmpcConstant_OsqpModel6_Verify_Uout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6/uref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6/uout.csv 2e-2)
+add_test(NAME TestLmpcConstant_OsqpModel6_Verify_Xout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6/xref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6/xout.csv 1e-1)
+
+
+add_test(NAME TestLmpcVarying_OsqpModel4 COMMAND TestLmpcVarying ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4 ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4 10 100)
+add_test(NAME TestLmpcVarying_OsqpModel4_Verify_Uout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4/uref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4/uout.csv 7e-4)
+add_test(NAME TestLmpcVarying_OsqpModel4_Verify_Xout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4/xref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model4/xout.csv 2e-3)
+
+add_test(NAME TestLmpcVarying_OsqpModel5 COMMAND TestLmpcVarying ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5 ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5 10 100)
+add_test(NAME TestLmpcVarying_OsqpModel5_Verify_Uout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5/uref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5/uout.csv 7e-4)
+add_test(NAME TestLmpcVarying_OsqpModel5_Verify_Xout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5/xref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model5/xout.csv 2e-3)
+
+add_test(NAME TestLmpcVarying_OsqpModel6 COMMAND TestLmpcVarying ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6 ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6 10 100)
+add_test(NAME TestLmpcVarying_OsqpModel6_Verify_Uout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6/uref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6/uout.csv 3e-2)
+add_test(NAME TestLmpcVarying_OsqpModel6_Verify_Xout COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_csvs.py ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6/xref.csv ${CMAKE_CURRENT_SOURCE_DIR}/data/OSQP/model6/xout.csv 2e-1)
+
+
 add_test(NAME TestSimulateMmc_Horizon1 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 1 100)
 add_test(NAME TestSimulateMmc_Horizon2 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 2 100)
 add_test(NAME TestSimulateMmc_Horizon5 COMMAND TestSimulateMmc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestSimulateMmc 5 100)
