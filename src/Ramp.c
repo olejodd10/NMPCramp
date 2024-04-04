@@ -122,7 +122,7 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const i
         for (size_t k = iterable_set_first(a_set); k != iterable_set_end(a_set); k = iterable_set_next(a_set, k)) {
             numerator += indexed_vectors_get(invq, k)[j] * m_column_M4[k];
         }
-        real_t val = numerator/y[j];
+        real_t val = -numerator/y[j];
         if (val < min || index == n_H) {
             min = val;
             index = j;
