@@ -111,7 +111,7 @@ static size_t active_constraints(const iterable_set_t *a_set, size_t n_a) {
 
 // Returns n_H if none found
 static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const iterable_set_t* a_set, const indexed_vectors_t *invq, size_t i, const real_t y[n_H]) {
-    real_t min = 0.0;
+    real_t min = -RAMP_EPS;
     size_t index = n_H;
     m_get_column_M4(i, m_column_M4);
     for (size_t j = 0; j < n_a; ++j) {
@@ -122,8 +122,8 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const i
         for (size_t k = iterable_set_first(a_set); k != iterable_set_end(a_set); k = iterable_set_next(a_set, k)) {
             numerator += indexed_vectors_get(invq, k)[j] * m_column_M4[k];
         }
-        real_t val = -numerator/y[j];
-        if (val < min || index == n_H) {
+        real_t val = iterable_set_contains(a_set, i) ? -numerator/y[j] : numerator/y[j];
+        if (val < min) {
             min = val;
             index = j;
         }
@@ -136,8 +136,8 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const i
         for (size_t k = iterable_set_first(a_set); k != iterable_set_end(a_set); k = iterable_set_next(a_set, k)) {
             numerator += indexed_vectors_get(invq, k)[j] * m_column_M4[k];
         }
-        real_t val = numerator/y[j];
-        if (val < min || index == n_H) {
+        real_t val = iterable_set_contains(a_set, i) ? -numerator/y[j] : numerator/y[j];
+        if (val < min) {
             min = val;
             index = j;
         }
