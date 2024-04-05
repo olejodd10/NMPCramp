@@ -199,7 +199,7 @@ static void get_column_M4(size_t index, real_t *column_M4) {
         get_column_M4a(index,
             m_n_x, m_n_u, m_n_y, m_n_t, m_N,
             m_n_M, m_n_a,
-            CAST_CONST_2D_VLA(m_Q, m_n_x), CAST_CONST_2D_VLA(m_S, m_n_x), CAST_CONST_2D_VLA(m_R, m_n_x),
+            CAST_CONST_2D_VLA(m_Q, m_n_x), CAST_CONST_2D_VLA(m_S, m_n_x), CAST_CONST_2D_VLA(m_R, m_n_u),
             CAST_CONST_3D_VLA(m_A, m_n_x, m_n_x), CAST_CONST_3D_VLA(m_B, m_n_x, m_n_u), CAST_CONST_2D_VLA(m_C, m_n_x),
             CAST_CONST_2D_VLA(m_Lt, m_n_x),
             column_M4);
