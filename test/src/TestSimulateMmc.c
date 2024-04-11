@@ -97,6 +97,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
 
     real_t *xout = (real_t*)malloc(sizeof(real_t)*(simulation_timesteps+1)*N_X);
     real_t *uout = (real_t*)malloc(sizeof(real_t)*simulation_timesteps*N_U);
+    real_t *tout = (real_t*)malloc(sizeof(real_t)*simulation_timesteps);
 
     // Initialize model
     mmc_model_get_init(R, Rc, L, Lc, C, Ts, N_SM, N, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
@@ -144,7 +145,9 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
             printf("Error while solving: %d\n", err);
             return 1;
         }
-        simulation_time_ns += (long long)timer_elapsed_ns();
+        long timestep_elapsed_ns = timer_elapsed_ns();
+        tout[i] = ((real_t)timestep_elapsed_ns)/1000.0;
+        simulation_time_ns += (long long)timestep_elapsed_ns;
         // Simulate using linearized discrete model
         simulate_affine(N_X, N_U, CAST_CONST_2D_VLA(A, N_X), &xout[i*N_X], CAST_CONST_2D_VLA(B, N_U), u, d, &xout[(i+1)*N_X]);
         memcpy(&uout[i*N_U], u, sizeof(real_t)*N_U);
@@ -165,6 +168,11 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
         printf("Error while saving uout.\n");
         return 1;
     }
+    sprintf(path, "%s/toutN%ld.csv", output_dir, N);
+    if (csv_save_vector(path, simulation_timesteps, tout) < 0) {
+        printf("Error while saving tout.\n");
+        return 1;
+    }
 
     //Cleanup
     sdqp_lmpc_mmc_cleanup();
@@ -181,6 +189,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
 
     free(xout);
     free(uout);
+    free(tout);
 
     return 0;
 }

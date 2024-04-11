@@ -48,6 +48,7 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
 
     real_t *xout = (real_t*)malloc(sizeof(real_t)*(simulation_timesteps+1)*n_x);
     real_t *uout = (real_t*)malloc(sizeof(real_t)*simulation_timesteps*n_u);
+    real_t *tout = (real_t*)malloc(sizeof(real_t)*simulation_timesteps);
 
     // Parse system matrices and vectors
     sprintf(path, "%s/Q.csv", input_dir);
@@ -144,7 +145,9 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
             printf("Error while solving: %d\n", err);
             return 1;
         }
-        simulation_time_ns += (long long)timer_elapsed_ns();
+        long timestep_elapsed_ns = timer_elapsed_ns();
+        tout[i] = ((real_t)timestep_elapsed_ns)/1000.0;
+        simulation_time_ns += (long long)timestep_elapsed_ns;
         simulate_lti(n_x, n_u, CAST_CONST_2D_VLA(A, n_x), &xout[i*n_x], CAST_CONST_2D_VLA(B, n_u), u, &xout[(i+1)*n_x]);
         memcpy(&uout[i*n_u], u, sizeof(real_t)*n_u);
     }
@@ -161,6 +164,11 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
     sprintf(path, "%s/uout.csv", output_dir);
     if (csv_save_matrix(path, simulation_timesteps, n_u, CAST_CONST_2D_VLA(uout, n_u)) < 0) {
         printf("Error while saving uout.\n");
+        return 1;
+    }
+    sprintf(path, "%s/toutN%ld.csv", output_dir, N);
+    if (csv_save_vector(path, simulation_timesteps, tout) < 0) {
+        printf("Error while saving tout.\n");
         return 1;
     }
 
@@ -189,6 +197,7 @@ int lmpc_constant_simulate(const char* input_dir, const char* output_dir, size_t
 
     free(xout);
     free(uout);
+    free(tout);
 
     return 0;
 }
