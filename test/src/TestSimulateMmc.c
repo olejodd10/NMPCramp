@@ -36,12 +36,12 @@
 #define q1 1.0
 #define q2 0.3
 
-#define Iv_ref_amp 50.0
-#define Iv_phase M_PI // Phase relative to PHASE_0
-
-#define P 7.5e3
-#define Idc_ref P/Vdc
+#define P_ref 7.5e3
+#define Idc_ref P_ref/Vdc
 #define Icir_ref Idc_ref/3.0
+
+#define Iv_ref_amp 2.0*P_ref/(3.0*Vf_amp)
+#define Iv_phase M_PI // Phase relative to PHASE_0
 
 // Model and discretization
 #define N_X 4

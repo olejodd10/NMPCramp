@@ -20,12 +20,12 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
     q1 = 1.0;
     q2 = 0.3;
     
-    Iv_ref_amp = 50.0;
-    Iv_phase = pi; % Phase relative to PHASE_0
-    
-    P = 7.5e3;
-    Idc_ref = P/Vdc;
+    P_ref = 7.5e3;
+    Idc_ref = P_ref/Vdc;
     Icir_ref = Idc_ref/3.0;
+
+    Iv_ref_amp = 2.0*P_ref/(3.0*Vf_amp);
+    Iv_phase = pi; % Phase relative to PHASE_0
     
     % Model and discretization
     N_X = 4;
