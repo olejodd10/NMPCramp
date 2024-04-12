@@ -76,12 +76,12 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
     x = zeros(N_X, N, 'double');
     u = zeros(N_U, N, 'double');
     for i = 1:N
-        x(1,i) = Iv_ref_amp*sin(PHASE_0 + Iv_phase + 2*pi*FREQ*Ts*(i-1));
-        x(2,i) = Icir_0;
-        x(3,i) = Vsigma_u_0;
-        x(4,i) = Vsigma_l_0;
-        u(1,i) = (N_SM/2)*sin(PHASE_0 - Vf_phase + 2*pi*FREQ*Ts*(i-1)) + N_SM/2;
-        u(2,i) = (N_SM/2)*sin(PHASE_0 + Vf_phase + 2*pi*FREQ*Ts*(i-1)) + N_SM/2;
+        x(1,i) = 0.0;
+        x(2,i) = Icir_ref;
+        x(3,i) = Vdc;
+        x(4,i) = Vdc;
+        u(1,i) = N_SM/2.0;
+        u(2,i) = N_SM/2.0;
     end
 
     % Allocate model matrices

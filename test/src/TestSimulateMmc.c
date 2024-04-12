@@ -114,14 +114,14 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
     // Initialize trajectory
     real_t omega = 2.0*M_PI*FREQ*Ts;
     for (size_t i = 0; i < N; ++i) {
-        x[i*N_X + 0] = Iv_ref_amp*sin(omega*(real_t)i + PHASE_0 + Iv_phase);
-        x[i*N_X + 1] = Icir_0;
-        x[i*N_X + 2] = Vsigma_u_0;
-        x[i*N_X + 3] = Vsigma_l_0;
+        x[i*N_X + 0] = 0.0;
+        x[i*N_X + 1] = Icir_ref;
+        x[i*N_X + 2] = Vdc;
+        x[i*N_X + 3] = Vdc;
     }
     for (size_t i = 0; i < N; ++i) {
-        u[i*N_U + 0] = N_SM/2.0*sin(omega*(real_t)i + PHASE_0 - Vf_phase) + N_SM/2.0;
-        u[i*N_U + 1] = N_SM/2.0*sin(omega*(real_t)i + PHASE_0 + Vf_phase) + N_SM/2.0;
+        u[i*N_U + 0] = N_SM/2.0;
+        u[i*N_U + 1] = N_SM/2.0;
     }
 
     long long simulation_time_ns = 0;
