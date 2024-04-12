@@ -29,6 +29,8 @@ static real_t *m_u_traj;
 static real_t *m_Vf;
 static real_t *m_Iv_ref;
 
+static real_t m_amp_Iv_prev = 50.0;
+
 static real_t m_omega;
 
 void mmc_s_function_start(int N, real_t R, real_t Rc, real_t L, real_t Lc, real_t C, real_t Ts, real_t freq, real_t n_sm, real_t q1, real_t q2, const real_t x_min[N_X], const real_t x_max[N_X], real_t insertion_index_deviation_allowance, const real_t u_min[N_U], const real_t u_max[N_U]) {
@@ -84,6 +86,18 @@ int mmc_s_function(int N, real_t phase_Vf, real_t phase_Iv, real_t amp_Vf, real_
         m_Iv_ref[i] = amp_Iv*sin(phase + phase_Iv);
         phase += (i == 0 ? m_omega : (real_t)TS1_FACTOR*m_omega);
     }
+
+    // Check for changed reference power, and update trajectories if found
+    int reference_power_changed = fabs(m_amp_Iv_prev - amp_Iv) > 0.0;
+    if (reference_power_changed) {
+        for (int i = 1; i < N; ++i) { // Note loop limits, x0 is still used for first time step
+            m_x_traj[i*N_X + 0] = m_Iv_ref[i];
+            m_x_traj[i*N_X + 1] = Icir_ref;
+            m_x_traj[i*N_X + 2] = Vdc;
+            m_x_traj[i*N_X + 3] = Vdc;
+        }
+    }
+    m_amp_Iv_prev = amp_Iv;
 
     for (int i = 0; i < LINEARIZATIONS; ++i) {
         // Get new model
