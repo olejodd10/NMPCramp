@@ -86,5 +86,11 @@ int mmc_s_function(int N, real_t phase_Vf, real_t phase_Iv, real_t amp_Vf, real_
     mmc_model_get_fe((size_t)N, CAST_CONST_2D_VLA(m_x_traj, N_X), CAST_CONST_2D_VLA(m_u_traj, N_U), m_Vf, Vdc, CAST_3D_VLA(m_A, N_X, N_X), CAST_3D_VLA(m_B, N_X, N_U), CAST_2D_VLA(m_d, N_X));
 
     // Solve
-    return sdqp_lmpc_mmc_solve(N_X, N_U, (size_t)N, m_Iv_ref, Icir_ref, CAST_CONST_3D_VLA(m_A, N_X, N_X), CAST_CONST_3D_VLA(m_B, N_X, N_U), CAST_CONST_2D_VLA(m_d, N_X), x0, x, u);
+    int err = sdqp_lmpc_mmc_solve(N_X, N_U, (size_t)N, m_Iv_ref, Icir_ref, CAST_CONST_3D_VLA(m_A, N_X, N_X), CAST_CONST_3D_VLA(m_B, N_X, N_U), CAST_CONST_2D_VLA(m_d, N_X), x0, x, u);
+
+    // Store solutions for trajectory adjustments in future time steps
+    memcpy(m_x_traj, x, sizeof(real_t)*N*N_X);
+    memcpy(m_u_traj, u, sizeof(real_t)*N*N_U);
+
+    return err;
 }
