@@ -12,7 +12,7 @@ target_include_directories(Timer PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_library(LtiMpc STATIC LtiMpc.c)
 target_link_libraries(LtiMpc PUBLIC Ramp)
 
-add_library(LtvMpc STATIC LtvMpc.c)
+add_library(LtvMpc STATIC LtvMpc.c Csr.c)
 target_link_libraries(LtvMpc PUBLIC Ramp)
 
 add_library(MmcMpc STATIC MmcMpc.c)

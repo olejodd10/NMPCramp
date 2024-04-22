@@ -8,6 +8,7 @@
 #include "Ramp.h"
 #include "Types.h"
 #include "Utils.h"
+#include "Csr.h"
 
 static size_t m_n_x;
 static size_t m_n_u;
@@ -20,7 +21,7 @@ static size_t m_n_M;
 static size_t m_n_H;
 static size_t m_n_a;
 
-static const real_t *m_Q;
+static csr_t m_Q_csr;
 static const real_t *m_S;
 static const real_t *m_R;
 static const real_t *m_fx;
@@ -71,7 +72,7 @@ static void get_column_M4a(
         size_t n_M,
         size_t n_a,
 
-        const real_t Q[n_x][n_x],
+        const csr_t *Q_csr,
         const real_t S[n_x][n_x],
         const real_t R[n_u][n_u],
 
@@ -97,7 +98,7 @@ static void get_column_M4a(
 
     // Multiply with Qhat
     for (size_t i = 0; i < N-1; ++i) {
-        linalg_matrix_vector_product(n_x, n_x, Q, &m_temp1[i*n_x], &m_temp2[i*n_x]); // We only use the first n_M of m_temp2 in this case
+        csr_matrix_multiply(n_x, n_x, Q_csr, &m_temp1[i*n_x], &m_temp2[i*n_x]);
     }
     linalg_matrix_vector_product(n_x, n_x, S, &m_temp1[(N-1)*n_x], &m_temp2[(N-1)*n_x]);
 
@@ -195,7 +196,7 @@ static void get_column_M4(size_t index, real_t *column_M4) {
         get_column_M4a(index,
             m_n_x, m_n_u, m_n_y, m_n_t, m_N,
             m_n_M, m_n_a,
-            CAST_CONST_2D_VLA(m_Q, m_n_x), CAST_CONST_2D_VLA(m_S, m_n_x), CAST_CONST_2D_VLA(m_R, m_n_u),
+            &m_Q_csr, CAST_CONST_2D_VLA(m_S, m_n_x), CAST_CONST_2D_VLA(m_R, m_n_u),
             CAST_CONST_3D_VLA(m_A, m_n_x, m_n_x), CAST_CONST_3D_VLA(m_B, m_n_x, m_n_u), CAST_CONST_2D_VLA(m_C, m_n_x),
             CAST_CONST_2D_VLA(m_Lt, m_n_x),
             column_M4);
@@ -220,7 +221,7 @@ static void compute_m(
         size_t n_H, 
         size_t n_a, 
 
-        const real_t Q[n_x][n_x],
+        const csr_t *Q_csr,
         const real_t S[n_x][n_x],
         const real_t R[n_u][n_u],
         const real_t fx[n_x],
@@ -288,7 +289,7 @@ static void compute_m(
 
     // Multiply MH[A0x0+d ha] with P (result n_z, but n_a of it can go directly to y because of I in MH2T)
     for (size_t i = 0; i < N-1; ++i) {
-        linalg_matrix_vector_product(n_x, n_x, Q, &m_temp2[i*n_x], &m_temp1[i*n_x]);
+        csr_matrix_multiply(n_x, n_x, Q_csr, &m_temp2[i*n_x], &m_temp1[i*n_x]);
     }
     linalg_matrix_vector_product(n_x, n_x, S, &m_temp2[(N-1)*n_x], &m_temp1[(N-1)*n_x]);
     for (size_t i = 0; i < N; ++i) {
@@ -373,7 +374,7 @@ void ltv_mpc_init(
     m_n_H = 2*(n_y*(N-1)+n_u*N)+n_t;
     m_n_a = n_u*N;
 
-    m_Q = (real_t*)Q;
+    csr_init(n_x, n_x, Q, &m_Q_csr);
     m_S = (real_t*)S;
     m_R = (real_t*)R;
     m_fx = (real_t*)fx; // Actually unused after m5 is initialized
@@ -398,6 +399,8 @@ void ltv_mpc_init(
 }
 
 void ltv_mpc_cleanup(void) {
+    csr_destroy(&m_Q_csr);
+
 	free(m_y);
 
 	free(m_temp1);
@@ -411,7 +414,7 @@ int ltv_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][n_x][n_x],
     m_A = (real_t*)A;
     m_B = (real_t*)B;
     compute_m(n_x, n_u, m_n_y, m_n_t, N, m_n_M, m_n_H, m_n_a,
-		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u), m_fx, m_fu,
+		&m_Q_csr, CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u), m_fx, m_fu,
 		A, B, d, CAST_CONST_2D_VLA(m_C, n_x),
 		m_y_min, m_y_max, CAST_CONST_2D_VLA(m_Lt, n_x), m_lt, m_u_min, m_u_max, 
         x0, m_y);
