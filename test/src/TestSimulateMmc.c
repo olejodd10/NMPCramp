@@ -50,17 +50,17 @@
 #define Ts 70.0e-6
 
 // Constraints
-#define Iv_0_min -75.0
+#define Iv_0_min -60.0
 #define Icir_0_min -50.0
 #define Vsigma_u_min 0.0
 #define Vsigma_l_min 0.0
 
 static const real_t X_MIN[N_X] = {Iv_0_min, Icir_0_min, Vsigma_u_min, Vsigma_l_min};
 
-#define Iv_0_max 75.0
+#define Iv_0_max 60.0
 #define Icir_0_max 50.0
-#define Vsigma_u_max 400.0
-#define Vsigma_l_max 400.0
+#define Vsigma_u_max 1000.0
+#define Vsigma_l_max 1000.0
 
 static const real_t X_MAX[N_X] = {Iv_0_max, Icir_0_max, Vsigma_u_max, Vsigma_l_max};
 

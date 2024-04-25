@@ -34,17 +34,17 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
     Ts = 70.0e-6;
     
     % Constraints
-    Iv_0_min = -75.0;
+    Iv_0_min = -60.0;
     Icir_0_min = -50.0;
     Vsigma_u_min = 0.0;
     Vsigma_l_min = 0.0;
     
     X_MIN = [Iv_0_min, Icir_0_min, Vsigma_u_min, Vsigma_l_min];
     
-    Iv_0_max = 75.0;
+    Iv_0_max = 60.0;
     Icir_0_max = 50.0;
-    Vsigma_u_max = 400.0;
-    Vsigma_l_max = 400.0;
+    Vsigma_u_max = 1000.0;
+    Vsigma_l_max = 1000.0;
     
     X_MAX = [Iv_0_max, Icir_0_max, Vsigma_u_max, Vsigma_l_max];
     
