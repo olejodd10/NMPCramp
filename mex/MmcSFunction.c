@@ -74,7 +74,6 @@ void mmc_s_function_terminate(void) {
 int mmc_s_function(int N, real_t phase_Vf, real_t phase_Iv, real_t amp_Vf, real_t amp_Iv, real_t Vdc, real_t Icir_ref, const real_t x0[N_X], real_t x[N][N_X], real_t u[N][N_U]) {
     // Adjust trajectories
     memcpy(m_x_traj, x0, sizeof(real_t)*N_X);
-    mmc_trajectory_shift(N_U, (size_t)N, CAST_CONST_2D_VLA(m_u_traj, N_U), CAST_2D_VLA(m_u_traj, N_U)); // Can be called as InitializeConditionsFcnSpec, but whatever
 
     // Predict Vf and Iv_ref
     for (int i = 0; i < N; ++i) {
@@ -89,7 +88,7 @@ int mmc_s_function(int N, real_t phase_Vf, real_t phase_Iv, real_t amp_Vf, real_
     int err = sdqp_lmpc_mmc_solve(N_X, N_U, (size_t)N, m_Iv_ref, Icir_ref, CAST_CONST_3D_VLA(m_A, N_X, N_X), CAST_CONST_3D_VLA(m_B, N_X, N_U), CAST_CONST_2D_VLA(m_d, N_X), x0, x, u);
 
     // Store solutions for trajectory adjustments in future time steps
-    memcpy(m_x_traj, x, sizeof(real_t)*N*N_X);
+    memcpy(&m_x_traj[N_X], x, sizeof(real_t)*(N-1)*N_X);
     memcpy(m_u_traj, u, sizeof(real_t)*N*N_U);
 
     return err;
