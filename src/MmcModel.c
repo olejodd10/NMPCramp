@@ -25,7 +25,8 @@ static real_t B1_31 = 0.0;
 static real_t d_0 = 0.0;
 static real_t d_1 = 0.0;
 
-static real_t m_Ts = 0.0;
+static real_t m_Ts0 = 0.0;
+static real_t m_Ts1 = 0.0;
 
 static real_t m_Al_T[N_X][N_X];
 static real_t m_Bl_T[N_U][N_X];
@@ -91,8 +92,9 @@ void mmc_model_get_fe(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], 
     }
 }
 
-void mmc_model_get_rk4_init(real_t R, real_t Rc, real_t L, real_t Lc, real_t C, real_t Ts, real_t n_sm, size_t N) {
-    m_Ts = Ts;
+void mmc_model_get_rk4_init(real_t R, real_t Rc, real_t L, real_t Lc, real_t C, real_t Ts0, real_t Ts1, real_t n_sm, size_t N) {
+    m_Ts0 = Ts0;
+    m_Ts1 = Ts1;
 
     A_00 = -1.0*(R+2.0*Rc)/(L+2.0*Lc);
     A_11 = -1.0*R/L;
@@ -187,7 +189,8 @@ static void discretize_rk4(const real_t x[N_X], const real_t u[N_U], real_t Ts, 
 
 void mmc_model_get_rk4(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], const real_t vf[N], real_t Vdc, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]) {
     for (size_t i = 0; i < N; ++i) {
+        real_t Ts = i == 0 ? m_Ts0 : m_Ts1;
         linearize(N, x[i], u[i], vf[i], Vdc, m_Al_T, m_Bl_T, m_dl);
-        discretize_rk4(x[i], u[i], m_Ts, m_Al_T, m_Bl_T, m_dl, A[i], B[i], d[i]);
+        discretize_rk4(x[i], u[i], Ts, m_Al_T, m_Bl_T, m_dl, A[i], B[i], d[i]);
     }
 }

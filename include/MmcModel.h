@@ -11,6 +11,6 @@ void mmc_model_get_fe_init(real_t R, real_t Rc, real_t L, real_t Lc, real_t C, r
 
 void mmc_model_get_fe(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], const real_t vf[N], real_t Vdc, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]);
 
-void mmc_model_get_rk4_init(real_t R, real_t Rc, real_t L, real_t Lc, real_t C, real_t Ts, real_t n_sm, size_t N);
+void mmc_model_get_rk4_init(real_t R, real_t Rc, real_t L, real_t Lc, real_t C, real_t Ts0, real_t Ts1, real_t n_sm, size_t N);
 
 void mmc_model_get_rk4(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], const real_t vf[N], real_t Vdc, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]);
