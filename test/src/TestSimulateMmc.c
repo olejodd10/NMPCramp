@@ -100,7 +100,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
     real_t *tout = (real_t*)malloc(sizeof(real_t)*simulation_timesteps);
 
     // Initialize model
-    mmc_model_get_init(R, Rc, L, Lc, C, Ts, N_SM, N, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
+    mmc_model_get_fe_init(R, Rc, L, Lc, C, Ts, N_SM, N, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
 
     // Initialize solver
     sdqp_lmpc_mmc_init(N_X, N_U, N, q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX);
@@ -134,7 +134,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
         extrapolate_sine(N, Vf_amp, FREQ, Ts, PHASE_0 + Vf_phase + 2.0*M_PI*FREQ*Ts*(real_t)i, 0.0, Vf);
         extrapolate_sine(N, Iv_ref_amp, FREQ, Ts, PHASE_0 + Iv_phase + 2.0*M_PI*FREQ*Ts*(real_t)i, 0.0, Iv_ref);
         // Get linearized discrete model
-        mmc_model_get(N, CAST_CONST_2D_VLA(x, N_X), CAST_CONST_2D_VLA(u, N_U), 
+        mmc_model_get_fe(N, CAST_CONST_2D_VLA(x, N_X), CAST_CONST_2D_VLA(u, N_U), 
                 Vf, Vdc, 
                 CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
         // Solve QP

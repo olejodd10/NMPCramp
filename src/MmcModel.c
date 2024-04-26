@@ -35,7 +35,7 @@ static real_t m_temp1[N_X][N_X];
 static real_t m_temp2[N_X][N_X];
 static real_t m_temp3[N_X][N_X];
 
-void mmc_model_get_init(real_t R, real_t Rc, real_t L, real_t Lc, real_t C, real_t Ts, real_t n_sm, size_t N, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]) {
+void mmc_model_get_fe_init(real_t R, real_t Rc, real_t L, real_t Lc, real_t C, real_t Ts, real_t n_sm, size_t N, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]) {
     A_00 = -Ts*(R+2.0*Rc)/(L+2.0*Lc);
     A_11 = -Ts*R/L;
 
@@ -66,7 +66,7 @@ void mmc_model_get_init(real_t R, real_t Rc, real_t L, real_t Lc, real_t C, real
 }
 
 // Assumes A, B and d are zero in unused elements
-void mmc_model_get(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], const real_t vf[N], real_t Vdc, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]) {
+void mmc_model_get_fe(size_t N, const real_t x[N][N_X], const real_t u[N][N_U], const real_t vf[N], real_t Vdc, real_t A[N][N_X][N_X], real_t B[N][N_X][N_U], real_t d[N][N_X]) {
     for (size_t i = 0; i < N; ++i) {
         A[i][0][2] = B0_02*u[i][0];
         A[i][0][3] = B1_03*u[i][1];
