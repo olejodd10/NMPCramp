@@ -13,6 +13,7 @@
 
 #define MMC_DELAY 6 // Delay for Vf and Iv_ref
 #define TS1_FACTOR 5
+#define LINEARIZATIONS 1
 
 // N_X and N_U are imported from MmcModel
 #define V_SIGMA_TRAJ_0 300.0
@@ -84,15 +85,21 @@ int mmc_s_function(int N, real_t phase_Vf, real_t phase_Iv, real_t amp_Vf, real_
         phase += (i == 0 ? m_omega : (real_t)TS1_FACTOR*m_omega);
     }
 
-    // Get new model
-    mmc_model_get_rk4((size_t)N, CAST_CONST_2D_VLA(m_x_traj, N_X), CAST_CONST_2D_VLA(m_u_traj, N_U), m_Vf, Vdc, CAST_3D_VLA(m_A, N_X, N_X), CAST_3D_VLA(m_B, N_X, N_U), CAST_2D_VLA(m_d, N_X));
+    for (int i = 0; i < LINEARIZATIONS; ++i) {
+        // Get new model
+        mmc_model_get_rk4((size_t)N, CAST_CONST_2D_VLA(m_x_traj, N_X), CAST_CONST_2D_VLA(m_u_traj, N_U), m_Vf, Vdc, CAST_3D_VLA(m_A, N_X, N_X), CAST_3D_VLA(m_B, N_X, N_U), CAST_2D_VLA(m_d, N_X));
 
-    // Solve
-    int err = sdqp_lmpc_mmc_solve(N_X, N_U, (size_t)N, m_Iv_ref, Icir_ref, CAST_CONST_3D_VLA(m_A, N_X, N_X), CAST_CONST_3D_VLA(m_B, N_X, N_U), CAST_CONST_2D_VLA(m_d, N_X), x0, x, u);
+        // Solve
+        int err = sdqp_lmpc_mmc_solve(N_X, N_U, (size_t)N, m_Iv_ref, Icir_ref, CAST_CONST_3D_VLA(m_A, N_X, N_X), CAST_CONST_3D_VLA(m_B, N_X, N_U), CAST_CONST_2D_VLA(m_d, N_X), x0, x, u);
 
-    // Store solutions for trajectory adjustments in future time steps
-    memcpy(&m_x_traj[N_X], x, sizeof(real_t)*(N-1)*N_X);
-    memcpy(m_u_traj, u, sizeof(real_t)*N*N_U);
+        // Store solutions for trajectory adjustments in future time steps
+        memcpy(&m_x_traj[N_X], x, sizeof(real_t)*(N-1)*N_X);
+        memcpy(m_u_traj, u, sizeof(real_t)*N*N_U);
 
-    return err;
+        if (err) {
+            return err;
+        }
+    }
+
+    return 0;
 }
