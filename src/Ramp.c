@@ -1,6 +1,7 @@
 #include "Ramp.h"
 
 #include <stddef.h>
+#include <string.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -19,16 +20,28 @@ static real_t infeasibility_error_max;
 static indexed_vectors_t m_invq;
 static ordered_set_t m_a_set;
 
-static real_t *m_column_M4;
+static indexed_vectors_t m_m4_cols;
+
 static real_t *m_v;
 
 static void (*m_get_column_M4)(size_t, real_t*);
+
+static const real_t* get_column_M4(size_t index) {
+    real_t* column_M4 = indexed_vectors_get_mut(&m_m4_cols, index);
+    if (column_M4 == NULL) {
+        indexed_vectors_insert(&m_m4_cols, index);
+        column_M4 = indexed_vectors_get_mut(&m_m4_cols, index);
+        m_get_column_M4(index, column_M4);
+    } 
+    return column_M4;
+}
 
 void ramp_init(size_t n_H, size_t n_a, void (*get_column_M4)(size_t, real_t*)) {
     indexed_vectors_init(&m_invq, 2*n_a, n_H, n_H);
     ordered_set_init(&m_a_set, n_H, n_a);
 
-    m_column_M4 = (real_t*)malloc(sizeof(real_t)*n_H);
+    indexed_vectors_init(&m_m4_cols, 2*n_a + 1, n_H, n_H);
+
     m_v = (real_t*)malloc(sizeof(real_t)*n_H);
     
     m_get_column_M4 = get_column_M4;
@@ -38,7 +51,8 @@ void ramp_cleanup(void) {
     indexed_vectors_destroy(&m_invq);
     ordered_set_destroy(&m_a_set);
 
-	free(m_column_M4);
+    indexed_vectors_destroy(&m_m4_cols);
+
 	free(m_v);
 }
 
@@ -93,13 +107,13 @@ static inline size_t most_incorrect_inactive_constraint(size_t n_H, size_t n_a, 
 static int compute_v(size_t n_H, const ordered_set_t* a_set, const indexed_vectors_t *invq, size_t index, real_t q0, real_t v[n_H]) {
     // Compute matrix vector product
     // Sparse part
-    m_get_column_M4(index, m_column_M4);
+    const real_t *column_M4 = get_column_M4(index);
     for (size_t i = 0; i < n_H; ++i) {
-        v[i] = ordered_set_contains(a_set, i) ? 0.0 : m_column_M4[i]; // 0.0 because the "dense part" computation takes care of the value
+        v[i] = ordered_set_contains(a_set, i) ? 0.0 : column_M4[i]; // 0.0 because the "dense part" computation takes care of the value
     }
     // Dense part
     for (size_t n = 0, i = ordered_set_nth(a_set, n); i != ordered_set_end(a_set); i = ordered_set_nth(a_set, ++n)) {
-        linalg_vector_add_scaled(n_H, v, indexed_vectors_get(invq, i), m_column_M4[i], v);
+        linalg_vector_add_scaled(n_H, v, indexed_vectors_get(invq, i), column_M4[i], v);
     }
     // At this point v is defined as in the paper
     real_t qdiv = q0+v[index];
@@ -123,14 +137,14 @@ static size_t active_constraints(const ordered_set_t *a_set, size_t n_a) {
 static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const ordered_set_t* a_set, const indexed_vectors_t *invq, size_t i, const real_t y[n_H]) {
     real_t min = -RAMP_EPS;
     size_t index = n_H;
-    m_get_column_M4(i, m_column_M4);
+    const real_t *column_M4 = get_column_M4(i);
     for (size_t j = 0; j < n_a; ++j) {
         if (ordered_set_contains(a_set, j)) {
             continue;
         }
-        real_t numerator = m_column_M4[j];
+        real_t numerator = column_M4[j];
         for (size_t n = 0, k = ordered_set_nth(a_set, n); k != ordered_set_end(a_set); k = ordered_set_nth(a_set, ++n)) {
-            numerator += indexed_vectors_get(invq, k)[j] * m_column_M4[k];
+            numerator += indexed_vectors_get(invq, k)[j] * column_M4[k];
         }
         real_t val = ordered_set_contains(a_set, i) ? -numerator/y[j] : numerator/y[j];
         if (val < min) {
@@ -144,7 +158,7 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const o
         }
         real_t numerator = 0.0;
         for (size_t n = 0, k = ordered_set_nth(a_set, n); k != ordered_set_end(a_set); k = ordered_set_nth(a_set, ++n)) {
-            numerator += indexed_vectors_get(invq, k)[j] * m_column_M4[k];
+            numerator += indexed_vectors_get(invq, k)[j] * column_M4[k];
         }
         real_t val = ordered_set_contains(a_set, i) ? -numerator/y[j] : numerator/y[j];
         if (val < min) {
@@ -175,6 +189,7 @@ static int active_set_remove(size_t n_H, size_t index, ordered_set_t *a_set, ind
     indexed_vectors_remove(invq, index);
     update_y(n_H, index, m_v, y);
     update_invq(n_H, index, a_set, m_v, invq);
+    indexed_vectors_remove(&m_m4_cols, index);
     return 0;
 }
 
@@ -186,7 +201,8 @@ static int active_set_insert(size_t n_H, size_t index, ordered_set_t *a_set, ind
     update_y(n_H, index, m_v, y);
     update_invq(n_H, index, a_set, m_v, invq);
     ordered_set_insert(a_set, index);
-    indexed_vectors_insert(invq, index, m_v);
+    indexed_vectors_insert(invq, index);
+    memcpy(indexed_vectors_get_mut(invq, index), m_v, sizeof(real_t)*n_H);
     indexed_vectors_get_mut(invq, index)[index] += 1.0; // Pretend there was a unit vector in the column to start with
     return 0;
 }
@@ -257,6 +273,7 @@ int ramp_solve(size_t n_H, size_t n_a, int hotstart_variant, real_t y[n_H]) {
         default:
             ordered_set_clear(&m_a_set);
             indexed_vectors_clear(&m_invq);
+            indexed_vectors_clear(&m_m4_cols);
             break;
     }
     return algorithm1(n_H, n_a, &m_a_set, &m_invq, y);

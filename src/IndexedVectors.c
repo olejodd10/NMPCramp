@@ -63,7 +63,7 @@ const real_t* indexed_vectors_get(const indexed_vectors_t *vecs, size_t index) {
     }
 }
 
-void indexed_vectors_insert(indexed_vectors_t *vecs, size_t index, const real_t *vec) {
+void indexed_vectors_insert(indexed_vectors_t *vecs, size_t index) {
     if (index >= vecs->max_index || vecs->where_is[index] != vecs->capacity 
             || vecs->size == vecs->capacity) {
         return;
@@ -71,7 +71,6 @@ void indexed_vectors_insert(indexed_vectors_t *vecs, size_t index, const real_t 
     size_t target = first_available_slot(vecs);
     vecs->whats_here[target] = index;
     vecs->where_is[index] = target;
-    memcpy(&vecs->values[vecs->length*target], vec, vecs->length*sizeof(real_t));
     vecs->size++;
 }
 

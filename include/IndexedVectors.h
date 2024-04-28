@@ -62,11 +62,10 @@ const real_t* indexed_vectors_get(const indexed_vectors_t *vecs, size_t index);
  *
  * @param[out] vecs Indexed vectors instance
  * @param[in] index Index of vector to insert
- * @param[in] vec Vector to insert
  * @note Does nothing if index exceeds max_index, if index is already stored or if capacity is met
  * @warning vec must have length equal to the parameter length passed to indexed_vectors_init
  */
-void indexed_vectors_insert(indexed_vectors_t *vecs, size_t index, const real_t *vec);
+void indexed_vectors_insert(indexed_vectors_t *vecs, size_t index);
 
 /**
  * @brief Remove an indexed vector.
