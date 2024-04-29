@@ -12,16 +12,12 @@ target_include_directories(Timer PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_library(SdqpLmpcConstant STATIC SdqpLmpcConstant.c)
 target_link_libraries(SdqpLmpcConstant PUBLIC Ramp)
 
-add_library(LmpcConstant OBJECT LmpcConstant.c)
-target_include_directories(LmpcConstant PUBLIC ${CMAKE_SOURCE_DIR}/include)
-
-
 add_library(SdqpLmpcVarying STATIC SdqpLmpcVarying.c)
 target_link_libraries(SdqpLmpcVarying PUBLIC Ramp)
 
-
 add_library(SdqpLmpcMmc STATIC SdqpLmpcMmc.c)
 target_link_libraries(SdqpLmpcMmc PUBLIC Ramp)
+
 
 add_library(MmcModel OBJECT MmcModel.c LinAlg.c)
 target_include_directories(MmcModel PUBLIC ${CMAKE_SOURCE_DIR}/include)
