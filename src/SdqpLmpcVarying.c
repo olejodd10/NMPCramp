@@ -209,7 +209,7 @@ static void get_column_M4(size_t index, real_t *column_M4) {
     }
 }
 
-static void initialize_y(
+static void compute_m(
         size_t n_x,
         size_t n_u,
         size_t n_y, 
@@ -410,7 +410,7 @@ int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][
     // initialize y
     m_A = (real_t*)A;
     m_B = (real_t*)B;
-    initialize_y(n_x, n_u, m_n_y, m_n_t, N, m_n_M, m_n_H, m_n_a,
+    compute_m(n_x, n_u, m_n_y, m_n_t, N, m_n_M, m_n_H, m_n_a,
 		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u), m_fx, m_fu,
 		A, B, d, CAST_CONST_2D_VLA(m_C, n_x),
 		m_y_min, m_y_max, CAST_CONST_2D_VLA(m_Lt, n_x), m_lt, m_u_min, m_u_max, 

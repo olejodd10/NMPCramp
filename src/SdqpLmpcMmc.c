@@ -189,7 +189,7 @@ static void get_column_M4(size_t index, real_t *column_M4) {
     }
 }
 
-static void initialize_y(
+static void compute_m(
         size_t n_x,
         size_t n_u,
         size_t N,
@@ -375,7 +375,7 @@ int sdqp_lmpc_mmc_solve(size_t n_x, size_t n_u, size_t N, const real_t x1_ref[N]
     // initialize y
     m_A = (real_t*)A;
     m_B = (real_t*)B;
-    initialize_y(n_x, n_u, N, m_n_M, m_n_H, m_n_a,
+    compute_m(n_x, n_u, N, m_n_M, m_n_H, m_n_a,
         m_q1, m_q2, x1_ref, x2_ref,
 		A, B, d,
         m_x_min, m_x_max, m_n_sm, m_insertion_index_deviation_allowance, m_u_min, m_u_max, 
