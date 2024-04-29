@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include "Types.h"
@@ -15,12 +16,18 @@ static uint8_t infeasiblity_error_enabled = 0;
 static real_t infeasibility_error_min;
 static real_t infeasibility_error_max;
 
+static indexed_vectors_t m_invq;
+static iterable_set_t m_a_set;
+
 static real_t *m_column_M4;
 static real_t *m_v;
 
 static void (*m_get_column_M4)(size_t, real_t*);
 
-void ramp_init(size_t n_H, void (*get_column_M4)(size_t, real_t*)) {
+void ramp_init(size_t n_H, size_t n_a, void (*get_column_M4)(size_t, real_t*)) {
+    indexed_vectors_init(&m_invq, 2*n_a, n_H, n_H);
+    iterable_set_init(&m_a_set, n_H, n_a);
+
     m_column_M4 = (real_t*)malloc(sizeof(real_t)*n_H);
     m_v = (real_t*)malloc(sizeof(real_t)*n_H);
     
@@ -28,6 +35,9 @@ void ramp_init(size_t n_H, void (*get_column_M4)(size_t, real_t*)) {
 }
 
 void ramp_cleanup(void) {
+    indexed_vectors_destroy(&m_invq);
+    iterable_set_destroy(&m_a_set);
+
 	free(m_column_M4);
 	free(m_v);
 }
@@ -235,6 +245,19 @@ static int algorithm1(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vec
     return 0;
 }
 
-int ramp_solve(size_t n_H, size_t n_a, iterable_set_t *a_set, indexed_vectors_t *invq, real_t y[n_H]) {
-    return algorithm1(n_H, n_a, a_set, invq, y);
+int ramp_solve(size_t n_H, size_t n_a, int hotstart_variant, real_t y[n_H]) {
+    switch (hotstart_variant) {
+        case RAMP_HOTSTART_M4_UNCHANGED:
+            memcpy(m_v, y, sizeof(real_t)*n_H); // Use m_v temporarily
+            for (size_t i = iterable_set_first(&m_a_set); i != iterable_set_end(&m_a_set); i = iterable_set_next(&m_a_set, i)) {
+                linalg_vector_add_scaled(n_H, y, indexed_vectors_get(&m_invq, i), m_v[i], y);
+                y[i] -= m_v[i];
+            }
+            break;
+        default:
+            iterable_set_clear(&m_a_set);
+            indexed_vectors_clear(&m_invq);
+            break;
+    }
+    return algorithm1(n_H, n_a, &m_a_set, &m_invq, y);
 }

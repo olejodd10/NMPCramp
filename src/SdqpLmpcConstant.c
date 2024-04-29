@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "IndexedVectors.h"
-#include "IterableSet.h"
 #include "LinAlg.h"
 #include "Ramp.h"
 #include "Types.h"
@@ -39,14 +37,11 @@ static const real_t *m_lt;
 static const real_t *m_u_min;
 static const real_t *m_u_max;
 
-static indexed_vectors_t m_invq;
-static iterable_set_t m_a_set;
 static real_t *m_y;
 
 static real_t *m_m5;
 static real_t *m_temp1; // Use x instead? Has length n_M and x is unused in initialize_y
 static real_t *m_temp2;
-static real_t *m_temp3;
 
 // in-place version, v = (I-Ahat)^-1 * v
 static void multiply_inv_eye_sub_Ahat_inplace(size_t n_x, size_t N, const real_t A[n_x][n_x], real_t v[N][n_x]) {
@@ -269,12 +264,12 @@ static void initialize_y(
 }
 
 static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H, 
-        const real_t A[n_x][n_x], const real_t B[n_x][n_u], const real_t x0[n_x], const real_t u_max[n_u], const iterable_set_t *a_set, const real_t y[n_H],
+        const real_t A[n_x][n_x], const real_t B[n_x][n_u], const real_t x0[n_x], const real_t u_max[n_u], const real_t y[n_H],
         real_t x[N][n_x], real_t u[N][n_u])
 {
     // Find ha-ra, store in last n_a elements of z (u)
     for (size_t i = 0; i < N*n_u; ++i) { // n_a == N*n_u
-        u[i/n_u][i%n_u] = iterable_set_contains(a_set, i) ? u_max[i % n_u] - y[i] : u_max[i % n_u]; // y_a is in the start of y
+        u[i/n_u][i%n_u] = y[i] > 0.0 ? u_max[i % n_u] - y[i] : u_max[i % n_u]; // y_a is in the start of y
     }
 
     // Multiply ha-ra with Bhat, and write result to first n_M elements of z (x)
@@ -429,16 +424,13 @@ void sdqp_lmpc_constant_init(
     m_u_min = (real_t*)u_min;
     m_u_max = (real_t*)u_max;
 
-    indexed_vectors_init(&m_invq, 2*m_n_a, m_n_H, m_n_H);
-    iterable_set_init(&m_a_set, m_n_H, m_n_a);
     m_y = (real_t*)malloc(sizeof(real_t)*m_n_H);
 
     m_m5 = (real_t*)malloc(sizeof(real_t)*m_n_H);
     m_temp1 = (real_t*)malloc(sizeof(real_t)*m_n_M);
     m_temp2 = (real_t*)malloc(sizeof(real_t)*m_n_M);
-    m_temp3 = (real_t*)malloc(sizeof(real_t)*m_n_H);
 
-    ramp_init(m_n_H, get_column_M4);
+    ramp_init(m_n_H, m_n_a, get_column_M4);
     ramp_enable_infeasibility_error(1e-12, 1e12);
 
     // Compute m5
@@ -450,15 +442,11 @@ void sdqp_lmpc_constant_init(
 }
 
 void sdqp_lmpc_constant_cleanup(void) {
-    indexed_vectors_destroy(&m_invq);
-    iterable_set_destroy(&m_a_set);
-
 	free(m_y);
 
 	free(m_m5);
 	free(m_temp1);
 	free(m_temp2);
-	free(m_temp3);
 
     ramp_cleanup();
 }
@@ -469,18 +457,13 @@ int sdqp_lmpc_constant_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n
 		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u),
 		CAST_CONST_2D_VLA(m_A, n_x), CAST_CONST_2D_VLA(m_B, n_u), CAST_CONST_2D_VLA(m_C, n_x),
 		CAST_CONST_2D_VLA(m_Lt, n_x), x0, m_y);
-    memcpy(m_temp3, m_y, sizeof(real_t)*m_n_H);
-    for (size_t i = iterable_set_first(&m_a_set); i != iterable_set_end(&m_a_set); i = iterable_set_next(&m_a_set, i)) {
-        linalg_vector_add_scaled(m_n_H, m_y, indexed_vectors_get(&m_invq, i), m_temp3[i], m_y);
-        m_y[i] -= m_temp3[i];
-    }
-    int err = ramp_solve(m_n_H, m_n_a, &m_a_set, &m_invq, m_y);
+    int err = ramp_solve(m_n_H, m_n_a, RAMP_HOTSTART_M4_UNCHANGED, m_y);
     if (err) {
         return err;
     }
     compute_x_u(n_x, n_u, N, m_n_H, 
             CAST_CONST_2D_VLA(m_A, n_x), CAST_CONST_2D_VLA(m_B, n_u), 
-            x0, m_u_max, &m_a_set, m_y, 
+            x0, m_u_max, m_y, 
             x, u);
     return 0;
 }
