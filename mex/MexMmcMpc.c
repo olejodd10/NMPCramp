@@ -6,7 +6,7 @@
 
 #include "MexUtils.h"
 #include "Utils.h"
-#include "SdqpLmpcMmc.h"
+#include "MmcMpc.h"
 #include "Types.h"
 
 #define NRHS 19
@@ -15,7 +15,7 @@
 static int initialized = 0;
 
 static void cleanup(void) {
-    sdqp_lmpc_mmc_cleanup();
+    mmc_mpc_cleanup();
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
@@ -87,10 +87,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 
     if (!initialized) {
-        sdqp_lmpc_mmc_init(n_x, n_u, N, q1, q2, x_min, x_max, n_sm, insertion_index_deviation_allowance, u_min, u_max);
+        mmc_mpc_init(n_x, n_u, N, q1, q2, x_min, x_max, n_sm, insertion_index_deviation_allowance, u_min, u_max);
         initialized = 1;
     }
-    int err = sdqp_lmpc_mmc_solve(n_x, n_u, N, x1_ref, x2_ref, 
+    int err = mmc_mpc_solve(n_x, n_u, N, x1_ref, x2_ref, 
             CAST_CONST_3D_VLA(A, n_x, n_x), CAST_CONST_3D_VLA(B, n_x, n_u), CAST_CONST_2D_VLA(d, n_x), x0, 
             CAST_2D_VLA(x, n_x), CAST_2D_VLA(u, n_u));
     if (err) {

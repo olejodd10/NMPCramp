@@ -106,7 +106,7 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
         [A,B,d] = MexMmcModel(R, Rc, L, Lc, C, Ts, N_SM, N, x, u, vf, Vdc, A, B, d);
 
         % Solve QP
-        [x,u] = MexSdqpLmpcMmc(N_X, N_U, N, q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX, Iv_ref, Icir_ref, A, B, d, xout(i,:), x, u);
+        [x,u] = MexMmcMpc(N_X, N_U, N, q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX, Iv_ref, Icir_ref, A, B, d, xout(i,:), x, u);
         simulation_time_s = simulation_time_s + toc;
 
         % Simulate using linearized discrete model

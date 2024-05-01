@@ -9,19 +9,19 @@ add_library(Timer OBJECT Timer.c)
 target_include_directories(Timer PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 
-add_library(SdqpLmpcConstant STATIC SdqpLmpcConstant.c)
-target_link_libraries(SdqpLmpcConstant PUBLIC Ramp)
+add_library(LtiMpc STATIC LtiMpc.c)
+target_link_libraries(LtiMpc PUBLIC Ramp)
 
-add_library(SdqpLmpcVarying STATIC SdqpLmpcVarying.c)
-target_link_libraries(SdqpLmpcVarying PUBLIC Ramp)
+add_library(LtvMpc STATIC LtvMpc.c)
+target_link_libraries(LtvMpc PUBLIC Ramp)
 
-add_library(SdqpLmpcMmc STATIC SdqpLmpcMmc.c)
-target_link_libraries(SdqpLmpcMmc PUBLIC Ramp)
+add_library(MmcMpc STATIC MmcMpc.c)
+target_link_libraries(MmcMpc PUBLIC Ramp)
 
 
 add_library(MmcModel OBJECT MmcModel.c LinAlg.c)
 target_include_directories(MmcModel PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-add_library(SimulateMmcUtils OBJECT Extrapolate.c MmcTrajectory.c)
-target_include_directories(SimulateMmcUtils PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(SimulateMmcUtils PUBLIC m)
+add_library(MmcMpcUtils OBJECT Extrapolate.c MmcTrajectory.c)
+target_include_directories(MmcMpcUtils PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(MmcMpcUtils PUBLIC m)

@@ -1,4 +1,4 @@
-#include "SdqpLmpcMmc.h"
+#include "MmcMpc.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -319,7 +319,7 @@ static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H,
     multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, x);
 }
 
-void sdqp_lmpc_mmc_init(
+void mmc_mpc_init(
         size_t n_x,
         size_t n_u,
         size_t N,
@@ -362,7 +362,7 @@ void sdqp_lmpc_mmc_init(
     ramp_enable_infeasibility_error(1e-12, 1e12);
 }
 
-void sdqp_lmpc_mmc_cleanup(void) {
+void mmc_mpc_cleanup(void) {
 	free(m_y);
 
 	free(m_temp1);
@@ -371,7 +371,7 @@ void sdqp_lmpc_mmc_cleanup(void) {
     ramp_cleanup();
 }
 
-int sdqp_lmpc_mmc_solve(size_t n_x, size_t n_u, size_t N, const real_t x1_ref[N], real_t x2_ref, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
+int mmc_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t x1_ref[N], real_t x2_ref, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
     // initialize y
     m_A = (real_t*)A;
     m_B = (real_t*)B;

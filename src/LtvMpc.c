@@ -1,4 +1,4 @@
-#include "SdqpLmpcVarying.h"
+#include "LtvMpc.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -340,7 +340,7 @@ static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H,
     multiply_inv_eye_sub_Ahat_inplace(n_x, N, A, CAST_2D_VLA(x, n_x));
 }
 
-void sdqp_lmpc_varying_init(
+void ltv_mpc_init(
         size_t n_x,
         size_t n_u,
         size_t n_y,
@@ -397,7 +397,7 @@ void sdqp_lmpc_varying_init(
     ramp_enable_infeasibility_error(1e-12, 1e12);
 }
 
-void sdqp_lmpc_varying_cleanup(void) {
+void ltv_mpc_cleanup(void) {
 	free(m_y);
 
 	free(m_temp1);
@@ -406,7 +406,7 @@ void sdqp_lmpc_varying_cleanup(void) {
     ramp_cleanup();
 }
 
-int sdqp_lmpc_varying_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
+int ltv_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
     // initialize y
     m_A = (real_t*)A;
     m_B = (real_t*)B;

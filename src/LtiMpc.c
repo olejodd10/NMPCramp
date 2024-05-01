@@ -1,4 +1,4 @@
-#include "SdqpLmpcConstant.h"
+#include "LtiMpc.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -372,7 +372,7 @@ static void compute_m5(
     }
 }
 
-void sdqp_lmpc_constant_init(
+void lti_mpc_init(
         size_t n_x,
         size_t n_u,
         size_t n_y,
@@ -441,7 +441,7 @@ void sdqp_lmpc_constant_init(
         y_min, y_max, Lt, lt, u_min, u_max);
 }
 
-void sdqp_lmpc_constant_cleanup(void) {
+void lti_mpc_cleanup(void) {
 	free(m_y);
 
 	free(m_m5);
@@ -451,7 +451,7 @@ void sdqp_lmpc_constant_cleanup(void) {
     ramp_cleanup();
 }
 
-int sdqp_lmpc_constant_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
+int lti_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
     // initialize y
     compute_m(n_x, n_u, m_n_y, m_n_t, N, m_n_H, 
 		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u),

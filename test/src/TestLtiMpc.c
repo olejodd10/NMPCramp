@@ -8,9 +8,9 @@
 #include "Utils.h"
 #include "Csv.h"
 #include "Timer.h"
-#include "SdqpLmpcVarying.h"
+#include "LtiMpc.h"
 
-static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, size_t N, size_t simulation_timesteps) {
+static int lti_mpc_simulate(const char* input_dir, const char* output_dir, size_t N, size_t simulation_timesteps) {
     char path[128];
 
     // Parse system dimensions
@@ -30,9 +30,8 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
 	real_t *fx = (real_t*)malloc(sizeof(real_t)*n_x);
 	real_t *fu = (real_t*)malloc(sizeof(real_t)*n_u);
 
-	real_t *A = (real_t*)malloc(sizeof(real_t)*N*n_x*n_x);
-	real_t *B = (real_t*)malloc(sizeof(real_t)*N*n_x*n_u);
-	real_t *d = (real_t*)malloc(sizeof(real_t)*N*n_x);
+	real_t *A = (real_t*)malloc(sizeof(real_t)*n_x*n_x);
+	real_t *B = (real_t*)malloc(sizeof(real_t)*n_x*n_u);
 	real_t *C = (real_t*)malloc(sizeof(real_t)*n_y*n_x);
 
     real_t *y_min = (real_t*)malloc(sizeof(real_t)*n_y);
@@ -76,19 +75,16 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
         return 1;
     }
 
-    for (size_t i = 0; i < N; ++i) {
-        sprintf(path, "%s/A.csv", input_dir);
-        if (csv_parse_matrix(path, n_x, n_x, CAST_2D_VLA(&A[i*n_x*n_x], n_x))) { 
-            printf("Error while parsing input matrix A.\n");
-            return 1;
-        }
-        sprintf(path, "%s/B.csv", input_dir);
-        if (csv_parse_matrix(path, n_x, n_u, CAST_2D_VLA(&B[i*n_x*n_u], n_u))) { 
-            printf("Error while parsing input matrix B.\n");
-            return 1;
-        }
+    sprintf(path, "%s/A.csv", input_dir);
+    if (csv_parse_matrix(path, n_x, n_x, CAST_2D_VLA(A, n_x))) { 
+        printf("Error while parsing input matrix A.\n");
+        return 1;
     }
-    memset(d, 0, sizeof(real_t)*N*n_x);
+    sprintf(path, "%s/B.csv", input_dir);
+    if (csv_parse_matrix(path, n_x, n_u, CAST_2D_VLA(B, n_u))) { 
+        printf("Error while parsing input matrix B.\n");
+        return 1;
+    }
     sprintf(path, "%s/C.csv", input_dir);
     if (csv_parse_matrix(path, n_y, n_x, CAST_2D_VLA(C, n_x))) { 
         printf("Error while parsing input matrix C.\n");
@@ -133,18 +129,16 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
     }
 
     // Initialize solver
-    sdqp_lmpc_varying_init(n_x, n_u, n_y, n_t, N, 
+    lti_mpc_init(n_x, n_u, n_y, n_t, N, 
             CAST_CONST_2D_VLA(Q, n_x), CAST_CONST_2D_VLA(S, n_x), CAST_CONST_2D_VLA(R, n_u), fx, fu, 
-            CAST_CONST_2D_VLA(C, n_x), 
+            CAST_CONST_2D_VLA(A, n_x), CAST_CONST_2D_VLA(B, n_u), CAST_CONST_2D_VLA(C, n_x), 
             y_min, y_max, CAST_CONST_2D_VLA(Lt, n_x), lt, u_min, u_max);
 
     // Simulate
     long long simulation_time_ns = 0;
     for (size_t i = 0; i < simulation_timesteps; ++i) {
         timer_reset();
-        int err = sdqp_lmpc_varying_solve(n_x, n_u, N, 
-                CAST_CONST_3D_VLA(A, n_x, n_x), CAST_CONST_3D_VLA(B, n_x, n_u), CAST_CONST_2D_VLA(d, n_x), &xout[i*n_x], 
-                CAST_2D_VLA(x, n_x), CAST_2D_VLA(u, n_u));
+        int err = lti_mpc_solve(n_x, n_u, N, &xout[i*n_x], CAST_2D_VLA(x, n_x), CAST_2D_VLA(u, n_u));
         if (err) {
             printf("Error while solving: %d\n", err);
             return 1;
@@ -152,7 +146,7 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
         long timestep_elapsed_ns = timer_elapsed_ns();
         tout[i] = ((real_t)timestep_elapsed_ns)/1000.0;
         simulation_time_ns += (long long)timestep_elapsed_ns;
-        simulate_lti(n_x, n_u, CAST_CONST_2D_VLA(&A[0*n_x*n_x], n_x), &xout[i*n_x], CAST_CONST_2D_VLA(&B[0*n_x*n_u], n_u), u, &xout[(i+1)*n_x]);
+        simulate_lti(n_x, n_u, CAST_CONST_2D_VLA(A, n_x), &xout[i*n_x], CAST_CONST_2D_VLA(B, n_u), u, &xout[(i+1)*n_x]);
         memcpy(&uout[i*n_u], u, sizeof(real_t)*n_u);
     }
 
@@ -177,7 +171,7 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
     }
 
     // Cleanup
-    sdqp_lmpc_varying_cleanup();
+    lti_mpc_cleanup();
 
 	free(Q);
 	free(S);
@@ -187,7 +181,6 @@ static int lmpc_varying_simulate(const char* input_dir, const char* output_dir, 
 
 	free(A);
 	free(B);
-    free(d);
 	free(C);
 
     free(y_min);
@@ -215,7 +208,7 @@ int main(int argc, char *argv[]) {
         const char *output_dir = argv[2];
         size_t N = (size_t)atoi(argv[3]);
         size_t simulation_timesteps = (size_t)atoi(argv[4]);
-        return lmpc_varying_simulate(input_dir, output_dir, N, simulation_timesteps);
+        return lti_mpc_simulate(input_dir, output_dir, N, simulation_timesteps);
     }
     return 1;
 }

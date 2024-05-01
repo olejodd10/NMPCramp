@@ -9,7 +9,7 @@
 #include "MmcTrajectory.h"
 #include "Extrapolate.h"
 #include "MmcModel.h"
-#include "SdqpLmpcMmc.h"
+#include "MmcMpc.h"
 #include "Csv.h"
 #include "Simulate.h"
 #include "Utils.h"
@@ -103,7 +103,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
     mmc_model_get_fe_init(R, Rc, L, Lc, C, Ts, N_SM, N, CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
 
     // Initialize solver
-    sdqp_lmpc_mmc_init(N_X, N_U, N, q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX);
+    mmc_mpc_init(N_X, N_U, N, q1, q2, X_MIN, X_MAX, N_SM, INSERTION_INDEX_DEVIATION_ALLOWANCE, U_MIN, U_MAX);
 
     // Initialize state
     xout[0] = Iv_0;
@@ -138,7 +138,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
                 Vf, Vdc, 
                 CAST_3D_VLA(A, N_X, N_X), CAST_3D_VLA(B, N_X, N_U), CAST_2D_VLA(d, N_X));
         // Solve QP
-        int err = sdqp_lmpc_mmc_solve(N_X, N_U, N, Iv_ref, Icir_ref, 
+        int err = mmc_mpc_solve(N_X, N_U, N, Iv_ref, Icir_ref, 
                 CAST_CONST_3D_VLA(A, N_X, N_X), CAST_CONST_3D_VLA(B, N_X, N_U), CAST_CONST_2D_VLA(d, N_X), &xout[i*N_X], 
                 CAST_2D_VLA(x, N_X), CAST_2D_VLA(u, N_U));
         if (err) {
@@ -175,7 +175,7 @@ static int simulate_mmc(const char* output_dir, size_t N, size_t simulation_time
     }
 
     //Cleanup
-    sdqp_lmpc_mmc_cleanup();
+    mmc_mpc_cleanup();
 
     free(A);
     free(B);
