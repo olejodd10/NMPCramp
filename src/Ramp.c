@@ -53,7 +53,7 @@ void ramp_disable_infeasibility_error(void) {
 }
 
 // Returns n_H if none found
-static inline size_t most_incorrect_active_constraint(size_t n_H, size_t n_a, const iterable_set_t* a_set, real_t y[n_H]) {
+static inline size_t most_incorrect_active_constraint(size_t n_H, size_t n_a, const iterable_set_t* a_set, const real_t y[n_H]) {
     real_t min = -RAMP_EPS;
     size_t index = n_H; // Invalid index, think of it as -1 but using an unsigned data type for efficiency
     for (size_t i = 0; i < n_a; ++i) {
@@ -72,7 +72,7 @@ static inline size_t most_incorrect_active_constraint(size_t n_H, size_t n_a, co
 }
 
 // Returns n_H if none found
-static inline size_t most_incorrect_inactive_constraint(size_t n_H, size_t n_a, const iterable_set_t* a_set, real_t y[n_H]) {
+static inline size_t most_incorrect_inactive_constraint(size_t n_H, size_t n_a, const iterable_set_t* a_set, const real_t y[n_H]) {
     real_t max = RAMP_EPS;
     size_t index = n_H; // Invalid index, think of it as -1 but using an unsigned data type for efficiency
     for (size_t i = 0; i < n_a; ++i) {
