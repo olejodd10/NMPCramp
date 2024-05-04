@@ -418,7 +418,7 @@ int ltv_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][n_x][n_x],
 		A, B, d, CAST_CONST_2D_VLA(m_C, n_x),
 		m_y_min, m_y_max, CAST_CONST_2D_VLA(m_Lt, n_x), m_lt, m_u_min, m_u_max, 
         x0, m_m);
-    int err = ramp_solve(m_n_H, m_n_a, RAMP_HOTSTART_NONE, m_m, m_y);
+    int err = ramp_solve(m_n_H, m_n_a, RAMP_HOTSTART_M4_CHANGED, m_m, m_y);
     if (err) {
         return err;
     }

@@ -27,6 +27,7 @@ static size_t m_n_H;
 
 static real_t *m_v_coefs;
 static real_t *m_y_coefs;
+static char *m_temp;
 
 static void (*m_get_column_M4)(size_t, real_t*);
 
@@ -50,6 +51,7 @@ void ramp_init(size_t n_H, size_t n_a, void (*get_column_M4)(size_t, real_t*)) {
 
     m_v_coefs = (real_t*)malloc(sizeof(real_t)*n_H);
     m_y_coefs = (real_t*)malloc(sizeof(real_t)*n_H);
+    m_temp = (char*)malloc(sizeof(char)*n_H);
     
     m_get_column_M4 = get_column_M4;
 }
@@ -61,6 +63,7 @@ void ramp_cleanup(void) {
     indexed_vectors_destroy(&m_invq_coefs);
     free(m_v_coefs);
     free(m_y_coefs);
+    free(m_temp);
 }
 
 void ramp_enable_infeasibility_error(real_t min, real_t max) {
@@ -294,6 +297,30 @@ int ramp_solve(size_t n_H, size_t n_a, int hotstart_variant, const real_t m[n_H]
             memset(m_y_coefs, 0, sizeof(real_t)*m_n_H);
             for (size_t n = 0, i = ordered_set_nth(&m_a_set, n); i != ordered_set_end(&m_a_set); i = ordered_set_nth(&m_a_set, ++n)) {
                 lincomb_add_scaled(n_H, &m_a_set, m_y_coefs, indexed_vectors_get(&m_invq_coefs, i), m[i], m_y_coefs);
+            }
+            break;
+        case RAMP_HOTSTART_M4_CHANGED:
+            memset(m_temp, 0, sizeof(char)*n_H);
+            for (size_t n = 0, i = ordered_set_nth(&m_a_set, n); i != ordered_set_end(&m_a_set); i = ordered_set_nth(&m_a_set, ++n)) {
+                m_temp[i] = 1;
+            }
+            indexed_vectors_clear(&m_m4_cols);
+            indexed_vectors_clear(&m_invq_coefs);
+            ordered_set_clear(&m_a_set);
+            for (size_t i = 0; i < n_H; ++i) {
+                if (m_temp[i]) {
+                    int err = compute_v(n_H, &m_a_set, &m_invq_coefs, i, -1.0, m_v_coefs);
+                    if (err) {
+                        return err;
+                    }
+                    update_invq(n_H, i, &m_a_set, m_v_coefs, &m_invq_coefs);
+                    indexed_vectors_insert(&m_invq_coefs, i); 
+                    memcpy(indexed_vectors_get_mut(&m_invq_coefs, i), m_v_coefs, sizeof(real_t)*n_H);
+                    real_t yi = lincomb_element(n_H, &m_a_set, m_y_coefs, &m_m4_cols, i) + m[i];
+                    lincomb_add_scaled(n_H, &m_a_set, m_y_coefs, m_v_coefs, yi, m_y_coefs);
+                    m_y_coefs[i] = yi*m_v_coefs[i]; // Irrelevant if removal, important if insertion
+                    ordered_set_insert(&m_a_set, i); 
+                }
             }
             break;
         default:
