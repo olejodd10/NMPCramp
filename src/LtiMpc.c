@@ -37,6 +37,7 @@ static const real_t *m_lt;
 static const real_t *m_u_min;
 static const real_t *m_u_max;
 
+static real_t *m_m;
 static real_t *m_y;
 
 static real_t *m_m5;
@@ -424,6 +425,7 @@ void lti_mpc_init(
     m_u_min = (real_t*)u_min;
     m_u_max = (real_t*)u_max;
 
+    m_m = (real_t*)malloc(sizeof(real_t)*m_n_H);
     m_y = (real_t*)malloc(sizeof(real_t)*m_n_H);
 
     m_m5 = (real_t*)malloc(sizeof(real_t)*m_n_H);
@@ -442,6 +444,7 @@ void lti_mpc_init(
 }
 
 void lti_mpc_cleanup(void) {
+	free(m_m);
 	free(m_y);
 
 	free(m_m5);
@@ -456,8 +459,8 @@ int lti_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n_x], real_t
     compute_m(n_x, n_u, m_n_y, m_n_t, N, m_n_H, 
 		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u),
 		CAST_CONST_2D_VLA(m_A, n_x), CAST_CONST_2D_VLA(m_B, n_u), CAST_CONST_2D_VLA(m_C, n_x),
-		CAST_CONST_2D_VLA(m_Lt, n_x), x0, m_y);
-    int err = ramp_solve(m_n_H, m_n_a, RAMP_HOTSTART_M4_UNCHANGED, m_y);
+		CAST_CONST_2D_VLA(m_Lt, n_x), x0, m_m);
+    int err = ramp_solve(m_n_H, m_n_a, RAMP_HOTSTART_M4_UNCHANGED, m_m, m_y);
     if (err) {
         return err;
     }

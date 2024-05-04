@@ -31,6 +31,7 @@ static real_t m_insertion_index_deviation_allowance;
 static const real_t *m_u_min;
 static const real_t *m_u_max;
 
+static real_t *m_m;
 static real_t *m_y;
 
 static real_t *m_temp1; // Use x instead? Has length n_M and x is unused in initialize_y
@@ -353,6 +354,7 @@ void mmc_mpc_init(
     m_u_min = (real_t*)u_min;
     m_u_max = (real_t*)u_max;
 
+    m_m = (real_t*)malloc(sizeof(real_t)*m_n_H);
     m_y = (real_t*)malloc(sizeof(real_t)*m_n_H);
 
     m_temp1 = (real_t*)malloc(sizeof(real_t)*m_n_M);
@@ -363,6 +365,7 @@ void mmc_mpc_init(
 }
 
 void mmc_mpc_cleanup(void) {
+	free(m_m);
 	free(m_y);
 
 	free(m_temp1);
@@ -379,8 +382,8 @@ int mmc_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t x1_ref[N], real
         m_q1, m_q2, x1_ref, x2_ref,
 		A, B, d,
         m_x_min, m_x_max, m_n_sm, m_insertion_index_deviation_allowance, m_u_min, m_u_max, 
-        x0, m_y);
-    int err = ramp_solve(m_n_H, m_n_a, RAMP_HOTSTART_NONE, m_y);
+        x0, m_m);
+    int err = ramp_solve(m_n_H, m_n_a, RAMP_HOTSTART_NONE, m_m, m_y);
     if (err) {
         return err;
     }

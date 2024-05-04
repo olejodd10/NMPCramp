@@ -18,4 +18,4 @@ void ramp_enable_infeasibility_error(real_t min, real_t max);
 
 void ramp_disable_infeasibility_error(void);
 
-int ramp_solve(size_t n_H, size_t n_a, int hotstart_variant, real_t y[n_H]);
+int ramp_solve(size_t n_H, size_t n_a, int hotstart_variant, const real_t m[n_H], real_t y[n_H]);
