@@ -119,7 +119,9 @@ static int compute_v(size_t n_a, const ordered_set_t* a_set, const indexed_vecto
     // Sparse part
     const real_t *column_M4 = get_column_M4(index);
     memset(v_coefs, 0, sizeof(real_t)*2*n_a);
-    for (size_t n = 0, i = ordered_set_nth(a_set, n); i != ordered_set_end(a_set); i = ordered_set_nth(a_set, ++n)) {
+    size_t lim = ordered_set_size(a_set);
+    for (size_t n = 0; n < lim; ++n) {
+        size_t i = ordered_set_nth(a_set, n);
         lincomb_add_scaled(n_a, a_set, v_coefs, indexed_vectors_get(invq_coefs, i), column_M4[i], v_coefs);
     }
     // On inserts the new index will not be inserted yet, so we need to compensate manually
@@ -187,7 +189,9 @@ static inline size_t rank_2_update_removal_index(size_t n_H, size_t n_a, const o
 }
 
 static inline void update_invq(size_t n_a, size_t index, const ordered_set_t* a_set, const real_t v_coefs[2*n_a], indexed_vectors_t *invq_coefs) {
-    for (size_t n = 0, i = ordered_set_nth(a_set, n); i != ordered_set_end(a_set); i = ordered_set_nth(a_set, ++n)) {
+    size_t lim = ordered_set_size(a_set);
+    for (size_t n = 0; n < lim; ++n) {
+        size_t i = ordered_set_nth(a_set, n);
         if (i == index) {
             continue;
         }
@@ -226,7 +230,9 @@ static int active_set_remove(size_t n_H, size_t n_a, size_t index, ordered_set_t
 
     // v coefs no longer needed, but invq coefs and y coefs need to be swapped
     m_y_coefs[a_set->ordering_of[index]] = m_y_coefs[ordered_set_size(a_set)-1];
-    for (size_t n = 0, i = ordered_set_nth(&m_a_set, n); i != ordered_set_end(&m_a_set); i = ordered_set_nth(&m_a_set, ++n)) {
+    size_t lim = ordered_set_size(&m_a_set);
+    for (size_t n = 0; n < lim; ++n) {
+        size_t i = ordered_set_nth(&m_a_set, n);
         if (i == index) {
             continue;
         }
@@ -311,13 +317,17 @@ int ramp_solve(size_t n_H, size_t n_a, int hotstart_variant, const real_t m[n_H]
     switch (hotstart_variant) {
         case RAMP_HOTSTART_M4_UNCHANGED:
             memset(m_y_coefs, 0, sizeof(real_t)*2*n_a);
-            for (size_t n = 0, i = ordered_set_nth(&m_a_set, n); i != ordered_set_end(&m_a_set); i = ordered_set_nth(&m_a_set, ++n)) {
+            size_t lim = ordered_set_size(&m_a_set);
+            for (size_t n = 0; n < lim; ++n) {
+                size_t i = ordered_set_nth(&m_a_set, n);
                 lincomb_add_scaled(n_a, &m_a_set, m_y_coefs, indexed_vectors_get(&m_invq_coefs, i), m[i], m_y_coefs);
             }
             break;
         case RAMP_HOTSTART_M4_CHANGED:
             memset(m_temp, 0, sizeof(char)*n_H);
-            for (size_t n = 0, i = ordered_set_nth(&m_a_set, n); i != ordered_set_end(&m_a_set); i = ordered_set_nth(&m_a_set, ++n)) {
+            lim = ordered_set_size(&m_a_set);
+            for (size_t n = 0; n < lim; ++n) {
+                size_t i = ordered_set_nth(&m_a_set, n);
                 m_temp[i] = 1;
             }
             indexed_vectors_clear(&m_m4_cols);
