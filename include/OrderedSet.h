@@ -82,6 +82,8 @@ uint8_t ordered_set_contains(const ordered_set_t* set, size_t element);
 
 size_t ordered_set_nth(const ordered_set_t *set, size_t n);
 
+size_t ordered_set_whereis(const ordered_set_t *set, size_t element);
+
 /**
  * @brief Returns the value returned by ordered_set_nth when called with an overshooting index.
  *

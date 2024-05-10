@@ -90,6 +90,14 @@ size_t ordered_set_nth(const ordered_set_t *set, size_t n) {
     }
 }
 
+size_t ordered_set_whereis(const ordered_set_t *set, size_t element) {
+    if (element >= set->capacity || !set->elements[element]) {
+        return set->capacity;
+    } else {
+        return set->ordering_of[element];
+    }
+}
+
 size_t ordered_set_end(const ordered_set_t* set) {
     return set->capacity;
 }
