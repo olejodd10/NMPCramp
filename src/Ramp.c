@@ -134,7 +134,7 @@ static int compute_v(size_t n_a, const ordered_set_t* a_set, const indexed_vecto
     }
     lincomb_scale(n_a, a_set, v_coefs, -1.0/qdiv, v_coefs);
     if (ordered_set_contains(a_set, index)) {
-        v_coefs[a_set->ordering_of[index]] += -1.0/qdiv;
+        v_coefs[ordered_set_whereis(a_set, index)] += -1.0/qdiv;
     } else {
         v_coefs[ordered_set_size(a_set)] += -1.0/qdiv;
     }
@@ -229,7 +229,7 @@ static int active_set_remove(size_t n_H, size_t n_a, size_t index, ordered_set_t
     indexed_vectors_remove(&m_m4_cols, index);
 
     // v coefs no longer needed, but invq coefs and y coefs need to be swapped
-    m_y_coefs[a_set->ordering_of[index]] = m_y_coefs[ordered_set_size(a_set)-1];
+    m_y_coefs[ordered_set_whereis(a_set, index)] = m_y_coefs[ordered_set_size(a_set)-1];
     size_t lim = ordered_set_size(&m_a_set);
     for (size_t n = 0; n < lim; ++n) {
         size_t i = ordered_set_nth(&m_a_set, n);
@@ -237,7 +237,7 @@ static int active_set_remove(size_t n_H, size_t n_a, size_t index, ordered_set_t
             continue;
         }
         real_t *invq_coefs_i = indexed_vectors_get_mut(invq_coefs, i);
-        invq_coefs_i[a_set->ordering_of[index]] = invq_coefs_i[ordered_set_size(a_set)-1];
+        invq_coefs_i[ordered_set_whereis(a_set, index)] = invq_coefs_i[ordered_set_size(a_set)-1];
     }
 
     ordered_set_remove(a_set, index);
