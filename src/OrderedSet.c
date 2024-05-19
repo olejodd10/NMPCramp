@@ -1,4 +1,4 @@
-#include "IterableSet.h"
+#include "OrderedSet.h"
 
 #include <stdint.h>
 #include <stddef.h>
@@ -11,7 +11,7 @@ static void swap(size_t *arr, size_t i, size_t j) {
     arr[j] = temp;
 }
 
-void iterable_set_init(iterable_set_t* set, size_t capacity, size_t pivot) {
+void ordered_set_init(ordered_set_t* set, size_t capacity, size_t pivot) {
     set->capacity = capacity;
     set->pivot = pivot;
     set->elements = (uint8_t*)malloc(capacity*sizeof(uint8_t));
@@ -26,13 +26,13 @@ void iterable_set_init(iterable_set_t* set, size_t capacity, size_t pivot) {
     set->partition = 0;
 }
 
-void iterable_set_destroy(iterable_set_t* set) {
+void ordered_set_destroy(ordered_set_t* set) {
 	free(set->elements);
 	free(set->ordering);
 	free(set->ordering_of);
 }
 
-void iterable_set_clear(iterable_set_t* set) {
+void ordered_set_clear(ordered_set_t* set) {
     memset(set->elements, 0, set->capacity);
     for (size_t i = 0; i < set->capacity; ++i) {
         set->ordering[i] = i;
@@ -42,7 +42,7 @@ void iterable_set_clear(iterable_set_t* set) {
     set->partition = 0;
 }
 
-void iterable_set_insert(iterable_set_t* set, size_t element) {
+void ordered_set_insert(ordered_set_t* set, size_t element) {
     if (element >= set->capacity || set->elements[element]) {
         return;
     }
@@ -56,7 +56,7 @@ void iterable_set_insert(iterable_set_t* set, size_t element) {
     set->size++;
 }
 
-void iterable_set_remove(iterable_set_t* set, size_t element) {
+void ordered_set_remove(ordered_set_t* set, size_t element) {
     if (element >= set->capacity || !set->elements[element]) {
         return;
     }
@@ -70,19 +70,19 @@ void iterable_set_remove(iterable_set_t* set, size_t element) {
     set->size--;
 }
 
-size_t iterable_set_size(const iterable_set_t* set) {
+size_t ordered_set_size(const ordered_set_t* set) {
     return set->size;
 }
 
-size_t iterable_set_partition(const iterable_set_t* set) {
+size_t ordered_set_partition(const ordered_set_t* set) {
     return set->partition;
 }
 
-uint8_t iterable_set_contains(const iterable_set_t* set, size_t element) {
+uint8_t ordered_set_contains(const ordered_set_t* set, size_t element) {
     return element < set->capacity && set->elements[element];
 }
 
-size_t iterable_set_nth(const iterable_set_t *set, size_t n) {
+size_t ordered_set_nth(const ordered_set_t *set, size_t n) {
     if (n >= set->size) {
         return set->capacity;
     } else {
@@ -90,6 +90,6 @@ size_t iterable_set_nth(const iterable_set_t *set, size_t n) {
     }
 }
 
-size_t iterable_set_end(const iterable_set_t* set) {
+size_t ordered_set_end(const ordered_set_t* set) {
     return set->capacity;
 }

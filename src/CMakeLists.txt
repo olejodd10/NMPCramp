@@ -1,4 +1,4 @@
-add_library(Ramp OBJECT Ramp.c LinAlg.c IndexedVectors.c IterableSet.c)
+add_library(Ramp OBJECT Ramp.c LinAlg.c IndexedVectors.c OrderedSet.c)
 target_include_directories(Ramp PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(Ramp PUBLIC m)
 
