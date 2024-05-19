@@ -4,6 +4,8 @@ project(NMPCramp)
 
 enable_testing()
 
+add_compile_options(-Ofast -g)
+
 add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(mex)
