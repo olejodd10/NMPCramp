@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(NMPCramp)
+project(RaMPC)
 
 enable_testing()
 
