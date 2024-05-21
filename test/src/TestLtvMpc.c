@@ -27,8 +27,8 @@ static int ltv_mpc_simulate(const char* input_dir, const char* output_dir, size_
 	real_t *Q = (real_t*)malloc(sizeof(real_t)*n_x*n_x);
 	real_t *S = (real_t*)malloc(sizeof(real_t)*n_x*n_x);
 	real_t *R = (real_t*)malloc(sizeof(real_t)*n_u*n_u);
-	real_t *fx = (real_t*)malloc(sizeof(real_t)*n_x);
-	real_t *fu = (real_t*)malloc(sizeof(real_t)*n_u);
+	real_t *fx = (real_t*)malloc(sizeof(real_t)*N*n_x);
+	real_t *fu = (real_t*)malloc(sizeof(real_t)*N*n_u);
 
 	real_t *A = (real_t*)malloc(sizeof(real_t)*N*n_x*n_x);
 	real_t *B = (real_t*)malloc(sizeof(real_t)*N*n_x*n_u);
@@ -66,14 +66,18 @@ static int ltv_mpc_simulate(const char* input_dir, const char* output_dir, size_
         return 1;
     }
     sprintf(path, "%s/fx.csv", input_dir);
-    if (csv_parse_vector(path, n_x, fx)) { 
+    if (csv_parse_vector(path, n_x, &fx[0*n_x])) { 
         printf("Error while parsing input vector fx.\n");
         return 1;
     }
     sprintf(path, "%s/fu.csv", input_dir);
-    if (csv_parse_vector(path, n_u, fu)) { 
+    if (csv_parse_vector(path, n_u, &fu[0*n_u])) { 
         printf("Error while parsing input vector fu.\n");
         return 1;
+    }
+    for (size_t i = 1; i < N; ++i) {
+        memcpy(&fx[i*n_x], &fx[0*n_x], sizeof(real_t)*n_x);
+        memcpy(&fu[i*n_u], &fu[0*n_u], sizeof(real_t)*n_u);
     }
 
     sprintf(path, "%s/A.csv", input_dir);
@@ -136,7 +140,8 @@ static int ltv_mpc_simulate(const char* input_dir, const char* output_dir, size_
 
     // Initialize solver
     ltv_mpc_init(n_x, n_u, n_y, n_t, N, 
-            CAST_CONST_2D_VLA(Q, n_x), CAST_CONST_2D_VLA(S, n_x), CAST_CONST_2D_VLA(R, n_u), fx, fu, 
+            CAST_CONST_2D_VLA(Q, n_x), CAST_CONST_2D_VLA(S, n_x), CAST_CONST_2D_VLA(R, n_u), 
+            CAST_CONST_2D_VLA(fx, n_x), CAST_CONST_2D_VLA(fu, n_u),
             CAST_CONST_2D_VLA(C, n_x), 
             y_min, y_max, CAST_CONST_2D_VLA(Lt, n_x), lt, u_min, u_max);
 

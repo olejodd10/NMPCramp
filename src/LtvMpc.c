@@ -223,8 +223,8 @@ static void compute_m(
         const real_t Q[n_x][n_x],
         const real_t S[n_x][n_x],
         const real_t R[n_u][n_u],
-        const real_t fx[n_x],
-        const real_t fu[n_u],
+        const real_t fx[N][n_x],
+        const real_t fu[N][n_u],
 
         const real_t A[N][n_x][n_x],
         const real_t B[N][n_x][n_u],
@@ -296,11 +296,15 @@ static void compute_m(
     }
 
     // Add f
-    for (size_t i = 0; i < n_M; ++i) {
-        m_temp1[i] += fx[i % n_x];
+    for (size_t i = 0; i < N; ++i) {
+        for (size_t j = 0; j < n_x; ++j) {
+            m_temp1[i*n_x + j] += fx[i][j];
+        }
     }
-    for (size_t i = 0; i < n_a; ++i) {
-        y[i] += fu[i % n_u]; // This part can go directly to y because of I in MH2T
+    for (size_t i = 0; i < N; ++i) {
+        for (size_t j = 0; j < n_u; ++j) {
+            y[i*n_u + j] += fu[i][j]; // This part can go directly to y because of I in MH2T
+        }
     }
     // Multiply MH2T (result n_a, stored in first n_a of y)
     multiply_inv_eye_sub_Ahat_T_inplace(n_x, N, A, CAST_2D_VLA(m_temp1, n_x));
@@ -350,8 +354,8 @@ void ltv_mpc_init(
         const real_t Q[n_x][n_x],
         const real_t S[n_x][n_x],
         const real_t R[n_u][n_u],
-        const real_t fx[n_x],
-        const real_t fu[n_u],
+        const real_t fx[N][n_x],
+        const real_t fu[N][n_u],
 
         const real_t C[n_y][n_x],
 
@@ -411,7 +415,8 @@ int ltv_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][n_x][n_x],
     m_A = (real_t*)A;
     m_B = (real_t*)B;
     compute_m(n_x, n_u, m_n_y, m_n_t, N, m_n_M, m_n_H, m_n_a,
-		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u), m_fx, m_fu,
+		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u), 
+        CAST_CONST_2D_VLA(m_fx, n_x), CAST_CONST_2D_VLA(m_fu, n_u),
 		A, B, d, CAST_CONST_2D_VLA(m_C, n_x),
 		m_y_min, m_y_max, CAST_CONST_2D_VLA(m_Lt, n_x), m_lt, m_u_min, m_u_max, 
         x0, m_y);

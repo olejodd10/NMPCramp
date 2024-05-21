@@ -14,8 +14,8 @@ void ltv_mpc_init(
         const real_t Q[n_x][n_x],
         const real_t S[n_x][n_x],
         const real_t R[n_u][n_u],
-        const real_t fx[n_x],
-        const real_t fu[n_u],
+        const real_t fx[N][n_x],
+        const real_t fu[N][n_u],
 
         const real_t C[n_y][n_x],
 
