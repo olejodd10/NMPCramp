@@ -74,3 +74,21 @@ add_test(NAME TestMexLtiMpc_OsqpModel5_Verify_Xout COMMAND python ${CMAKE_SOURCE
 
 add_test(NAME TestMexLtiMpc_OsqpModel6_Verify_Uout COMMAND python ${CMAKE_SOURCE_DIR}/test/scripts/compare_csvs.py ${CMAKE_SOURCE_DIR}/test/data/OSQP/model6/uref.csv ${CMAKE_SOURCE_DIR}/test/data/OSQP/model6/uout.csv 2e-2)
 add_test(NAME TestMexLtiMpc_OsqpModel6_Verify_Xout COMMAND python ${CMAKE_SOURCE_DIR}/test/scripts/compare_csvs.py ${CMAKE_SOURCE_DIR}/test/data/OSQP/model6/xref.csv ${CMAKE_SOURCE_DIR}/test/data/OSQP/model6/xout.csv 1e-1)
+
+
+add_test(NAME TestMexLtvMpc_AllModels COMMAND matlab ${TEST_MEX_MATLAB_FLAGS} -r 
+    "addpath('${CMAKE_BINARY_DIR}/mex'), \
+     addpath('${CMAKE_CURRENT_SOURCE_DIR}'), \
+     TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/QPramp/example1', '${CMAKE_SOURCE_DIR}/test/data/QPramp/example1', 10, 50), \
+     clear mex, \
+     TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/QPramp/example2', '${CMAKE_SOURCE_DIR}/test/data/QPramp/example2', 10, 50), \
+     clear mex, \
+     TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/QPramp/example3', '${CMAKE_SOURCE_DIR}/test/data/QPramp/example3', 10, 50), \
+     clear mex, \
+     TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/OSQP/model4', '${CMAKE_SOURCE_DIR}/test/data/OSQP/model4', 10, 50), \
+     clear mex, \
+     TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/OSQP/model5', '${CMAKE_SOURCE_DIR}/test/data/OSQP/model5', 10, 50), \
+     clear mex, \
+     TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/OSQP/model6', '${CMAKE_SOURCE_DIR}/test/data/OSQP/model6', 10, 50), \
+     clear mex, \
+     exit")
