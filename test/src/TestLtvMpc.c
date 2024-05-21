@@ -76,17 +76,19 @@ static int ltv_mpc_simulate(const char* input_dir, const char* output_dir, size_
         return 1;
     }
 
-    for (size_t i = 0; i < N; ++i) {
-        sprintf(path, "%s/A.csv", input_dir);
-        if (csv_parse_matrix(path, n_x, n_x, CAST_2D_VLA(&A[i*n_x*n_x], n_x))) { 
-            printf("Error while parsing input matrix A.\n");
-            return 1;
-        }
-        sprintf(path, "%s/B.csv", input_dir);
-        if (csv_parse_matrix(path, n_x, n_u, CAST_2D_VLA(&B[i*n_x*n_u], n_u))) { 
-            printf("Error while parsing input matrix B.\n");
-            return 1;
-        }
+    sprintf(path, "%s/A.csv", input_dir);
+    if (csv_parse_matrix(path, n_x, n_x, CAST_2D_VLA(&A[0*n_x*n_x], n_x))) { 
+        printf("Error while parsing input matrix A.\n");
+        return 1;
+    }
+    sprintf(path, "%s/B.csv", input_dir);
+    if (csv_parse_matrix(path, n_x, n_u, CAST_2D_VLA(&B[0*n_x*n_u], n_u))) { 
+        printf("Error while parsing input matrix B.\n");
+        return 1;
+    }
+    for (size_t i = 1; i < N; ++i) {
+        memcpy(&A[i*n_x*n_x], &A[0*n_x*n_x], sizeof(real_t)*n_x*n_x);
+        memcpy(&B[i*n_x*n_u], &B[0*n_x*n_u], sizeof(real_t)*n_x*n_u);
     }
     memset(d, 0, sizeof(real_t)*N*n_x);
     sprintf(path, "%s/C.csv", input_dir);
