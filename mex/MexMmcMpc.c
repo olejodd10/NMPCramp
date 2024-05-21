@@ -8,6 +8,7 @@
 #include "Utils.h"
 #include "MmcMpc.h"
 #include "Types.h"
+#include "Ramp.h"
 
 #define NRHS 19
 #define NLHS 2
@@ -93,8 +94,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     int err = mmc_mpc_solve(n_x, n_u, N, x1_ref, x2_ref, 
             CAST_CONST_3D_VLA(A, n_x, n_x), CAST_CONST_3D_VLA(B, n_x, n_u), CAST_CONST_2D_VLA(d, n_x), x0, 
             CAST_2D_VLA(x, n_x), CAST_2D_VLA(u, n_u));
-    if (err) {
-        mexErrMsgTxt("Error while solving.");
+    switch (err) {
+        case RAMP_ERROR_INFEASIBLE:
+            mexErrMsgTxt("Problem infeasible.");
+            break;
+        case RAMP_ERROR_RANK_2_UPDATE:
+            mexErrMsgTxt("Unable to perform rank 2 update.");
+            break;
+        default:
+            break;
     }
     mexAtExit(cleanup);
 }
