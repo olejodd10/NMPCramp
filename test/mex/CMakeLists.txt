@@ -9,11 +9,8 @@ add_test(NAME TestMexMmcMpc_Horizons_1_2_5_10 COMMAND matlab ${TEST_MEX_MATLAB_F
     "addpath('${CMAKE_BINARY_DIR}/mex'), \
      addpath('${CMAKE_CURRENT_SOURCE_DIR}'), \
      TestMexMmcMpc('${CMAKE_SOURCE_DIR}/test/data/TestMexMmcMpc', 1, 10000), \
-     clear mex, \
      TestMexMmcMpc('${CMAKE_SOURCE_DIR}/test/data/TestMexMmcMpc', 2, 10000), \
-     clear mex, \
      TestMexMmcMpc('${CMAKE_SOURCE_DIR}/test/data/TestMexMmcMpc', 5, 10000), \
-     clear mex, \
      TestMexMmcMpc('${CMAKE_SOURCE_DIR}/test/data/TestMexMmcMpc', 10, 10000), \
      exit")
 
@@ -44,17 +41,11 @@ add_test(NAME TestMexLtiMpc_AllModels COMMAND matlab ${TEST_MEX_MATLAB_FLAGS} -r
     "addpath('${CMAKE_BINARY_DIR}/mex'), \
      addpath('${CMAKE_CURRENT_SOURCE_DIR}'), \
      TestMexLtiMpc('${CMAKE_SOURCE_DIR}/test/data/QPramp/example1', '${CMAKE_SOURCE_DIR}/test/data/QPramp/example1', 10, 100), \
-     clear mex, \
      TestMexLtiMpc('${CMAKE_SOURCE_DIR}/test/data/QPramp/example2', '${CMAKE_SOURCE_DIR}/test/data/QPramp/example2', 10, 100), \
-     clear mex, \
      TestMexLtiMpc('${CMAKE_SOURCE_DIR}/test/data/QPramp/example3', '${CMAKE_SOURCE_DIR}/test/data/QPramp/example3', 10, 100), \
-     clear mex, \
      TestMexLtiMpc('${CMAKE_SOURCE_DIR}/test/data/OSQP/model4', '${CMAKE_SOURCE_DIR}/test/data/OSQP/model4', 10, 100), \
-     clear mex, \
      TestMexLtiMpc('${CMAKE_SOURCE_DIR}/test/data/OSQP/model5', '${CMAKE_SOURCE_DIR}/test/data/OSQP/model5', 10, 100), \
-     clear mex, \
      TestMexLtiMpc('${CMAKE_SOURCE_DIR}/test/data/OSQP/model6', '${CMAKE_SOURCE_DIR}/test/data/OSQP/model6', 10, 100), \
-     clear mex, \
      exit")
 
 add_test(NAME TestMexLtiMpc_QPrampExample1_Verify_Uout COMMAND python ${CMAKE_SOURCE_DIR}/test/scripts/compare_csvs.py ${CMAKE_SOURCE_DIR}/test/data/QPramp/example1/uref.csv ${CMAKE_SOURCE_DIR}/test/data/QPramp/example1/uout.csv 4e-5)
@@ -80,15 +71,9 @@ add_test(NAME TestMexLtvMpc_AllModels COMMAND matlab ${TEST_MEX_MATLAB_FLAGS} -r
     "addpath('${CMAKE_BINARY_DIR}/mex'), \
      addpath('${CMAKE_CURRENT_SOURCE_DIR}'), \
      TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/QPramp/example1', '${CMAKE_SOURCE_DIR}/test/data/QPramp/example1', 10, 50), \
-     clear mex, \
      TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/QPramp/example2', '${CMAKE_SOURCE_DIR}/test/data/QPramp/example2', 10, 50), \
-     clear mex, \
      TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/QPramp/example3', '${CMAKE_SOURCE_DIR}/test/data/QPramp/example3', 10, 50), \
-     clear mex, \
      TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/OSQP/model4', '${CMAKE_SOURCE_DIR}/test/data/OSQP/model4', 10, 50), \
-     clear mex, \
      TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/OSQP/model5', '${CMAKE_SOURCE_DIR}/test/data/OSQP/model5', 10, 50), \
-     clear mex, \
      TestMexLtvMpc('${CMAKE_SOURCE_DIR}/test/data/OSQP/model6', '${CMAKE_SOURCE_DIR}/test/data/OSQP/model6', 10, 50), \
-     clear mex, \
      exit")

@@ -55,4 +55,6 @@ function TestMexLtiMpc(input_dir, output_dir, N, simulation_timesteps)
     % Save output
     writematrix(xout, output_dir + "/xout.csv");
     writematrix(uout, output_dir + "/uout.csv");
+
+    clear MexLtvMpc;
 end

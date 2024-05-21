@@ -126,4 +126,6 @@ function TestMexSimulateMmc(output_dir, N, simulation_timesteps)
     writematrix(xout, output_dir + "/xoutN" + N + ".csv");
     writematrix(uout, output_dir + "/uoutN" + N + ".csv");
 
+    clear MexMmcModel;
+    clear MexMmcMpc;
 end
