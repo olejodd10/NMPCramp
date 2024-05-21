@@ -1,11 +1,11 @@
 if (CMAKE_HOST_WIN32)
     message(STATUS "TestMexMmcMpc configured for Windows")
-    set(TEST_MEX_MMC_MPC_MATLAB_FLAGS -nodesktop -nosplash -wait)
+    set(TEST_MEX_MATLAB_FLAGS -nodesktop -nosplash -wait)
 else()
-    set(TEST_MEX_MMC_MPC_MATLAB_FLAGS -nodisplay)
+    set(TEST_MEX_MATLAB_FLAGS -nodisplay)
 endif()
 
-add_test(NAME TestMexMmcMpc_Horizons_1_2_5_10 COMMAND matlab ${TEST_MEX_MMC_MPC_MATLAB_FLAGS} -r 
+add_test(NAME TestMexMmcMpc_Horizons_1_2_5_10 COMMAND matlab ${TEST_MEX_MATLAB_FLAGS} -r 
     "addpath('${CMAKE_BINARY_DIR}/mex'), \
      addpath('${CMAKE_CURRENT_SOURCE_DIR}'), \
      TestMexMmcMpc('${CMAKE_SOURCE_DIR}/test/data/TestMexMmcMpc', 1, 10000), \
