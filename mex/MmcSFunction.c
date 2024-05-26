@@ -12,7 +12,7 @@
 #include "SdqpLmpcMmc.h"
 
 #define MMC_DELAY 6 // Delay for Vf and Iv_ref
-#define TS1_FACTOR 5
+#define TS1_FACTOR 8
 #define LINEARIZATIONS 1
 
 // N_X and N_U are imported from MmcModel
