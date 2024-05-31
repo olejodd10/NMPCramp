@@ -83,7 +83,7 @@ int mmc_s_function(int N, real_t phase_Vf, real_t phase_Iv, real_t amp_Vf, real_
     real_t phase = m_omega*MMC_DELAY;
     for (int i = 0; i < N; ++i) {
         m_Vf[i] = amp_Vf*sin(phase + phase_Vf);
-        m_Iv_ref[i] = amp_Iv*sin(phase + phase_Iv);
+        m_Iv_ref[i] = amp_Iv*sin(phase + phase_Iv + m_omega); // +m_omega because first reference is for x1, not x0
         phase += (i == 0 ? m_omega : (real_t)TS1_FACTOR*m_omega);
     }
 
