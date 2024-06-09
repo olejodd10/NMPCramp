@@ -8,7 +8,7 @@ add_compile_options(-Ofast -g)
 
 add_subdirectory(src)
 
-find_package(Matlab 9.7 EXACT)
+find_package(Matlab)
 if(Matlab_FOUND)
     add_subdirectory(mex)
 endif()
