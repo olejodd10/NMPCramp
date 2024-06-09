@@ -80,6 +80,13 @@ size_t ordered_set_partition(const ordered_set_t* set);
  */
 uint8_t ordered_set_contains(const ordered_set_t* set, size_t element);
 
+/**
+ * @brief Returns the nth element in set
+ *
+ * @param[in] set Ordered set instance
+ * @param[in] n Index of element
+ * @return nth element if it exists, set->capacity otherwise
+ */
 size_t ordered_set_nth(const ordered_set_t *set, size_t n);
 
 /**
