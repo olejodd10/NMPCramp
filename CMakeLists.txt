@@ -7,5 +7,10 @@ enable_testing()
 add_compile_options(-Ofast -g)
 
 add_subdirectory(src)
+
+find_package(Matlab 9.7 EXACT)
+if(Matlab_FOUND)
+    add_subdirectory(mex)
+endif()
+
 add_subdirectory(test)
-add_subdirectory(mex)

@@ -63,4 +63,6 @@ add_test(NAME TestMmcMpc_Horizon2 COMMAND TestMmcMpc ${CMAKE_CURRENT_SOURCE_DIR}
 add_test(NAME TestMmcMpc_Horizon5 COMMAND TestMmcMpc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestMmcMpc 5 10000)
 add_test(NAME TestMmcMpc_Horizon10 COMMAND TestMmcMpc ${CMAKE_CURRENT_SOURCE_DIR}/data/TestMmcMpc 10 10000)
 
-add_subdirectory(mex)
+if(Matlab_FOUND)
+    add_subdirectory(mex)
+endif()
