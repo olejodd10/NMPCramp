@@ -33,10 +33,9 @@ static const real_t *m_u_max;
 
 static real_t *m_y;
 
-static real_t *m_temp1; // Use x instead? Has length n_M and x is unused in initialize_y
+static real_t *m_temp1;
 static real_t *m_temp2;
 
-// in-place version, v = (I-Ahat)^-1 * v
 static void multiply_inv_eye_sub_Ahat_inplace(size_t n_x, size_t N, const real_t A[N][n_x][n_x], real_t v[N][n_x]) {
     for (size_t i = 1; i < N; ++i) {
         for (size_t j = 0; j < n_x; ++j) {
@@ -288,9 +287,6 @@ static void compute_m(
             linalg_vector_add_scaled(n_u, &y[i*n_u], B[i][j], m_temp1[i*n_x + j], &y[i*n_u]);
         }
     }
-    
-    // "Optional":
-    // If starting from non-empty active set and invq is correct, compute y = invq*(M3x0+m5)
 }
 
 static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H, 
@@ -372,7 +368,6 @@ void mmc_mpc_cleanup(void) {
 }
 
 int mmc_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t x1_ref[N], real_t x2_ref, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
-    // initialize y
     m_A = (real_t*)A;
     m_B = (real_t*)B;
     compute_m(n_x, n_u, N, m_n_M, m_n_H, m_n_a,

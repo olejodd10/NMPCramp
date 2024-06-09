@@ -40,10 +40,9 @@ static const real_t *m_u_max;
 static real_t *m_y;
 
 static real_t *m_m5;
-static real_t *m_temp1; // Use x instead? Has length n_M and x is unused in initialize_y
+static real_t *m_temp1;
 static real_t *m_temp2;
 
-// in-place version, v = (I-Ahat)^-1 * v
 static void multiply_inv_eye_sub_Ahat_inplace(size_t n_x, size_t N, const real_t A[n_x][n_x], real_t v[N][n_x]) {
     for (size_t i = 1; i < N; ++i) {
         for (size_t j = 0; j < n_x; ++j) {
@@ -69,7 +68,6 @@ static void _get_column_M4(
         size_t n_t,
         size_t N,
 
-        // size_t n_z,
         size_t n_M,
         size_t n_H,
         size_t n_a,
@@ -128,7 +126,7 @@ static void _get_column_M4(
 
         // Bottom block/last n_b elements
         // Don't confuse -HbMH2 with -HbMH
-        // Note that m_temp1 already contains (...)^-1*Bhat(:,index), So we really just need to multiply with -Hb
+        // Note that m_temp1 already contains (...)^-1*Bhat(:,index), so we really just need to multiply with -Hb
 
         // C and Lt0-blocks
         for (size_t i = 0; i < N-1; ++i) {
@@ -171,7 +169,7 @@ static void _get_column_M4(
                 }
             }
         } else {
-            column_M4[local_index - (2*n_y*(N-1) + n_t)] = -1.0; // Note the sign. The value there is zero, but we set it instead of adding because whatever
+            column_M4[local_index - (2*n_y*(N-1) + n_t)] = -1.0; // Note the sign. The value there is zero, but we set it anyways
         }
 
         // Bottom block/last n_b elements
@@ -216,13 +214,9 @@ static void compute_m(
 
         real_t y[n_H]) 
 {
-    // Precompute:
-
     // Precompute m5 in init
 
-    // When new x0 arrives:
-    
-    // Goal is to compute M3x0
+    // When new x0 arrives, the goal is to compute M3x0
 
     // Set y to m5
     memcpy(y, m_m5, sizeof(real_t)*n_H);
@@ -246,7 +240,7 @@ static void compute_m(
     }
 
     // Multiply MH[A0 0]x0 inplace with P (result n_M)
-    // Note that we must write results to m_temp2 because inplace not possible with matrix_vector_product
+    // Note that we must write results to m_temp2 because inplace is not possible with matrix_vector_product
     for (size_t i = 0; i < N-1; ++i) {
         linalg_matrix_vector_product(n_x, n_x, Q, &m_temp1[i*n_x], &m_temp2[i*n_x]);
     }
@@ -258,9 +252,6 @@ static void compute_m(
             linalg_vector_add_scaled(n_u, &y[i*n_u], B[j], m_temp2[i*n_x + j], &y[i*n_u]);
         }
     }
-
-    // "Optional":
-    // If starting from non-empty active set and invq is correct, compute y = invq*(M3x0+m5)
 }
 
 static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H, 
@@ -410,8 +401,8 @@ void lti_mpc_init(
     m_Q = (real_t*)Q;
     m_S = (real_t*)S;
     m_R = (real_t*)R;
-    m_fx = (real_t*)fx; // Actually unused after m5 is initialized
-    m_fu = (real_t*)fu; // Actually unused after m5 is initialized
+    m_fx = (real_t*)fx;
+    m_fu = (real_t*)fu;
 
     m_A = (real_t*)A;
     m_B = (real_t*)B;
@@ -433,7 +424,6 @@ void lti_mpc_init(
     ramp_init(m_n_H, m_n_a, get_column_M4);
     ramp_enable_infeasibility_error(1e-12, 1e12);
 
-    // Compute m5
     compute_m5( n_x, n_u, n_y, n_t, N,
         m_n_M, m_n_a,
         Q, S, R, fx, fu,
@@ -452,7 +442,6 @@ void lti_mpc_cleanup(void) {
 }
 
 int lti_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
-    // initialize y
     compute_m(n_x, n_u, m_n_y, m_n_t, N, m_n_H, 
 		CAST_CONST_2D_VLA(m_Q, n_x), CAST_CONST_2D_VLA(m_S, n_x), CAST_CONST_2D_VLA(m_R, n_u),
 		CAST_CONST_2D_VLA(m_A, n_x), CAST_CONST_2D_VLA(m_B, n_u), CAST_CONST_2D_VLA(m_C, n_x),

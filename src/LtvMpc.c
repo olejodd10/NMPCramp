@@ -39,10 +39,9 @@ static const real_t *m_u_max;
 
 static real_t *m_y;
 
-static real_t *m_temp1; // Use x instead? Has length n_M and x is unused in initialize_y
+static real_t *m_temp1;
 static real_t *m_temp2;
 
-// in-place version, v = (I-Ahat)^-1 * v
 static void multiply_inv_eye_sub_Ahat_inplace(size_t n_x, size_t N, const real_t A[N][n_x][n_x], real_t v[N][n_x]) {
     for (size_t i = 1; i < N; ++i) {
         for (size_t j = 0; j < n_x; ++j) {
@@ -181,7 +180,7 @@ static void get_column_M4b(
             }
         }
     } else {
-        column_M4[local_index - (2*n_y*(N-1) + n_t)] = -1.0; // Note the sign. The value there is zero, but we set it instead of adding because whatever
+        column_M4[local_index - (2*n_y*(N-1) + n_t)] = -1.0; // Note the sign. The value there is zero, but we assign anyways
     }
 
     // Bottom block/last n_b elements
@@ -313,9 +312,6 @@ static void compute_m(
             linalg_vector_add_scaled(n_u, &y[i*n_u], B[i][j], m_temp1[i*n_x + j], &y[i*n_u]);
         }
     }
-    
-    // "Optional":
-    // If starting from non-empty active set and invq is correct, compute y = invq*(M3x0+m5)
 }
 
 static void compute_x_u(size_t n_x, size_t n_u, size_t N, size_t n_H, 
@@ -380,8 +376,8 @@ void ltv_mpc_init(
     m_Q = (real_t*)Q;
     m_S = (real_t*)S;
     m_R = (real_t*)R;
-    m_fx = (real_t*)fx; // Actually unused after m5 is initialized
-    m_fu = (real_t*)fu; // Actually unused after m5 is initialized
+    m_fx = (real_t*)fx;
+    m_fu = (real_t*)fu;
 
     m_C = (real_t*)C;
 
@@ -411,7 +407,6 @@ void ltv_mpc_cleanup(void) {
 }
 
 int ltv_mpc_solve(size_t n_x, size_t n_u, size_t N, const real_t A[N][n_x][n_x], const real_t B[N][n_x][n_u], const real_t d[N][n_x], const real_t x0[n_x], real_t x[N][n_x], real_t u[N][n_u]) {
-    // initialize y
     m_A = (real_t*)A;
     m_B = (real_t*)B;
     compute_m(n_x, n_u, m_n_y, m_n_t, N, m_n_M, m_n_H, m_n_a,
